@@ -1,0 +1,27 @@
+{
+	"name": "testbot",
+	"version": "1.0.0",
+	"description": "",
+	"type": "module",
+	"main": "index.ts",
+	"scripts": {
+		"dev": "ts-node index.ts",
+		"check": "pnpm biome check .",
+		"check:apply": "pnpm biome check --write .",
+		"format": "pnpm biome format --write ."
+	},
+	"keywords": [],
+	"author": "kokoio01",
+	"license": "ISC",
+	"packageManager": "pnpm@10.33.0",
+	"dependencies": {
+		"@types/node": "^25.5.0",
+		"discord.js": "^14.26.2",
+		"dotenv": "^17.4.1",
+		"ts-node": "^10.9.2",
+		"typescript": "^6.0.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.10"
+	}
+}
