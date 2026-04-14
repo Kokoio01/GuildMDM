@@ -3,6 +3,7 @@ import { Events, GatewayIntentBits } from "discord.js";
 import fs from "fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
+import { initDB } from "./src/db/index.js";
 import type { ButtonHandler } from "./src/structures/buttonhandler.js";
 import { ExtendedClient } from "./src/structures/extendedclient.js";
 import type { GatewayEvent } from "./src/structures/gatewayevent.js";
@@ -15,6 +16,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 client.once(Events.ClientReady, async (readyClient) => {
+	await initDB();
+
 	const events = fs.readdirSync("./src/events");
 	for (const event of events) {
 		const fpath = path.join(__dirname, "src", "events", event);
