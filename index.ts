@@ -1,12 +1,13 @@
 import "dotenv/config";
+import fs from "node:fs";
+import path, { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { Events, GatewayIntentBits } from "discord.js";
-import fs from "fs";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
 import { initDB } from "./src/db/index.js";
 import type { ButtonHandler } from "./src/structures/buttonhandler.js";
 import { ExtendedClient } from "./src/structures/extendedclient.js";
 import type { GatewayEvent } from "./src/structures/gatewayevent.js";
+import type { ModalHandler } from "./src/structures/modalhandler.js";
 import type { SelectHandler } from "./src/structures/selecthandler.js";
 import type { SlashCommand } from "./src/structures/slashcommand.js";
 import { logger } from "./src/utils/logger.js";
@@ -40,6 +41,14 @@ client.once(Events.ClientReady, async (readyClient) => {
 		const selectClass = await import(fpath);
 		const selectInstance: SelectHandler = new selectClass.default();
 		client.selects.set(selectInstance.name, selectInstance);
+	}
+
+	const modals = fs.readdirSync("./src/modals");
+	for (const modal of modals) {
+		const fpath = path.join(__dirname, "src", "modals", modal);
+		const modalClass = await import(fpath);
+		const modalInstance: ModalHandler = new modalClass.default();
+		client.modals.set(modalInstance.name, modalInstance);
 	}
 
 	const slashcommands = fs.readdirSync("./src/slashcommands");

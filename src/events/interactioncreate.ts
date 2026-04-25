@@ -2,6 +2,7 @@ import { type Interaction, MessageFlags } from "discord.js";
 import type { ButtonHandler } from "../structures/buttonhandler.js";
 import { GatewayEvent } from "../structures/gatewayevent.js";
 import type { SelectHandler } from "../structures/selecthandler.js";
+import type { ModalHandler } from "../structures/modalhandler.js";
 
 export default class InteractionCreate extends GatewayEvent {
 	public name: string = "interactionCreate";
@@ -34,6 +35,11 @@ export default class InteractionCreate extends GatewayEvent {
 				if (interaction.isAnySelectMenu()) {
 					const component: SelectHandler | undefined =
 						this.client.selects.get(componentname);
+					if (component) return await component.execute(interaction);
+        }
+        if (interaction.isModalSubmit()) {
+          const component: ModalHandler | undefined =
+						this.client.modals.get(componentname);
 					if (component) return await component.execute(interaction);
 				}
 			} catch (error) {
