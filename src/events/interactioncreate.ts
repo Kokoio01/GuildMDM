@@ -1,8 +1,9 @@
 import { type Interaction, MessageFlags } from "discord.js";
 import type { ButtonHandler } from "../structures/buttonhandler.js";
 import { GatewayEvent } from "../structures/gatewayevent.js";
-import type { SelectHandler } from "../structures/selecthandler.js";
 import type { ModalHandler } from "../structures/modalhandler.js";
+import type { SelectHandler } from "../structures/selecthandler.js";
+import { logger } from "../utils/logger.js";
 
 export default class InteractionCreate extends GatewayEvent {
 	public name: string = "interactionCreate";
@@ -15,7 +16,7 @@ export default class InteractionCreate extends GatewayEvent {
 			try {
 				await command.execute(interaction);
 			} catch (error) {
-				console.error(error);
+				logger.error(error);
 
 				await interaction.reply({
 					content: "An Error accrued while executing this command",
@@ -36,17 +37,29 @@ export default class InteractionCreate extends GatewayEvent {
 					const component: SelectHandler | undefined =
 						this.client.selects.get(componentname);
 					if (component) return await component.execute(interaction);
-        }
-        if (interaction.isModalSubmit()) {
-          const component: ModalHandler | undefined =
-						this.client.modals.get(componentname);
-					if (component) return await component.execute(interaction);
 				}
 			} catch (error) {
-				console.error(error);
+				logger.error(error);
 
 				await interaction.reply({
-					content: "An Error accrued while executing this command",
+					content: "An Error accrued while executing this action",
+					flags: MessageFlags.Ephemeral,
+				});
+			}
+		}
+
+		if (interaction.isModalSubmit()) {
+			const componentname =
+				interaction.customId.split(":")[0] || "ERROR_MODAL_NOT_FOUND";
+			try {
+				const component: ModalHandler | undefined =
+					this.client.modals.get(componentname);
+				if (component) return await component.execute(interaction);
+			} catch (error) {
+				logger.error(error);
+
+				await interaction.reply({
+					content: "An Error accrued while executing this action",
 					flags: MessageFlags.Ephemeral,
 				});
 			}

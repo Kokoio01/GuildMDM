@@ -1,7 +1,10 @@
 import { Pool } from "pg";
+import { joinrequest } from "./functions/joinrequests.js";
+import { network } from "./functions/networks.js";
+import { node } from "./functions/nodes.js";
 import { validateSchema } from "./schema.js";
 
-const pool = new Pool({
+export const pool = new Pool({
 	host: process.env.DB_HOST as string,
 	user: process.env.DB_USER as string,
 	password: process.env.DB_PASS as string,
@@ -18,3 +21,7 @@ export async function initDB(): Promise<void> {
 	await validateSchema(client);
 	client.release();
 }
+
+export const nodes = new node();
+export const networks = new network();
+export const joinrequests = new joinrequest();

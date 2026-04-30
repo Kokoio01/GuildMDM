@@ -20,6 +20,9 @@ importers:
       dotenv:
         specifier: ^17.4.1
         version: 17.4.1
+      nanoid:
+        specifier: ^5.1.9
+        version: 5.1.9
       pg:
         specifier: ^8.20.0
         version: 8.20.0
@@ -379,6 +382,11 @@ packages:
 
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
+
+  nanoid@5.1.9:
+    resolution: {integrity: sha512-ZUvP7KeBLe3OZ1ypw6dI/TzYJuvHP77IM4Ry73waSQTLn8/g8rpdjfyVAh7t1/+FjBtG4lCP42MEbDxOsRpBMw==}
+    engines: {node: ^18 || >=20}
+    hasBin: true
 
   on-exit-leak-free@2.1.2:
     resolution: {integrity: sha512-0eJJY6hXLGf1udHwfNftBqH+g73EU4B504nZeKpz1sYRKafAghwxEJunB2O7rDZkL4PGfsMVnTXZ2EjibbqcsA==}
@@ -810,6 +818,8 @@ snapshots:
   magic-bytes.js@1.13.0: {}
 
   minimist@1.2.8: {}
+
+  nanoid@5.1.9: {}
 
   on-exit-leak-free@2.1.2: {}
 
