@@ -1,7 +1,7 @@
 {
-	"name": "testbot",
+	"name": "guildmdm",
 	"version": "1.0.0",
-	"description": "",
+	"description": "Manage your discord servers like endpoints",
 	"type": "module",
 	"main": "index.ts",
 	"scripts": {
@@ -12,7 +12,7 @@
 	},
 	"keywords": [],
 	"author": "kokoio01",
-	"license": "ISC",
+	"license": "GPL-3.0",
 	"packageManager": "pnpm@10.33.0",
 	"dependencies": {
 		"@types/node": "^25.5.0",

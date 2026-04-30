@@ -1,36 +1,39 @@
 import { nanoid } from "nanoid";
 import type { Network } from "../../types/network.js";
 import { pool } from "../index.js";
+import {logger} from "../../utils/logger.js";
 
 export class network {
 	public async getNetwork(networkId: number): Promise<Network | null> {
+		const conn = await pool.connect();
 		try {
-			const conn = await pool.connect();
-
 			const result = await conn.query(
 				"SELECT * FROM networks WHERE id = $1 LIMIT 1",
 				[networkId],
 			);
-			conn.release();
 			return result.rows[0] as Network;
-		} catch {
+		} catch (err) {
+			logger.error(err);
 			return null;
+		} finally {
+			conn.release();
 		}
 	}
 
 	public async getNetworkByJoinKey(joinKey: string): Promise<Network | null> {
+		const conn = await pool.connect();
 		try {
-			const conn = await pool.connect();
-
 			const result = await conn.query(
 				"SELECT * FROM networks WHERE joinKey = $1 LIMIT 1",
 				[joinKey],
 			);
 
-			conn.release();
 			return result.rows[0] as Network;
-		} catch {
+		} catch (err) {
+			logger.error(err);
 			return null;
+		} finally {
+			conn.release();
 		}
 	}
 
@@ -53,11 +56,13 @@ export class network {
 			);
 			await conn.query("COMMIT");
 
-			conn.release();
 			return result.rows[0] as Network;
-		} catch {
+		} catch (err) {
 			await conn.query("ROLLBACK");
+			logger.error(err);
 			return null;
+		} finally {
+			conn.release();
 		}
 	}
 }
