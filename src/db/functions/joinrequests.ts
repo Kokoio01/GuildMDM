@@ -1,6 +1,6 @@
 import type { JoinRequest, RequestStatus } from "../../types/network.js";
-import { pool } from "../index.js";
 import { logger } from "../../utils/logger.js";
+import { pool } from "../index.js";
 
 export class joinrequest {
 	public async getJoinRequests(

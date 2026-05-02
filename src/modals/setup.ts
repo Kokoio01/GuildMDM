@@ -108,7 +108,7 @@ export default class SetupModal extends ModalHandler {
 							),
 						);
 					} else {
-						const  result = await joinrequests.createJoinRequest(
+						const result = await joinrequests.createJoinRequest(
 							interaction.guild.id,
 							adminNode.networkid,
 							message,

@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
 import type { Network } from "../../types/network.js";
+import { logger } from "../../utils/logger.js";
 import { pool } from "../index.js";
-import {logger} from "../../utils/logger.js";
 
 export class network {
 	public async getNetwork(networkId: number): Promise<Network | null> {
