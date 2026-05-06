@@ -7,9 +7,11 @@ import { initDB } from "./src/db/index.js";
 import type { ButtonHandler } from "./src/structures/buttonhandler.js";
 import { ExtendedClient } from "./src/structures/extendedclient.js";
 import type { GatewayEvent } from "./src/structures/gatewayevent.js";
+import type { InternalEvent } from "./src/structures/internalevent.js";
 import type { ModalHandler } from "./src/structures/modalhandler.js";
 import type { SelectHandler } from "./src/structures/selecthandler.js";
 import type { SlashCommand } from "./src/structures/slashcommand.js";
+import { internalBus } from "./src/utils/eventBus.js";
 import { logger } from "./src/utils/logger.js";
 
 const client = new ExtendedClient({ intents: [GatewayIntentBits.Guilds] });
@@ -22,6 +24,15 @@ client.once(Events.ClientReady, async (readyClient) => {
 	const events = fs.readdirSync("./src/events");
 	for (const event of events) {
 		const fpath = path.join(__dirname, "src", "events", event);
+		const eventClass = await import(fpath);
+		const eventInstance: InternalEvent<"mock_register"> =
+			new eventClass.default(internalBus, readyClient);
+		eventInstance.register();
+	}
+
+	const gevents = fs.readdirSync("./src/gatewayevents");
+	for (const event of gevents) {
+		const fpath = path.join(__dirname, "src", "gatewayevents", event);
 		const eventClass = await import(fpath);
 		const eventInstance: GatewayEvent = new eventClass.default(readyClient);
 		eventInstance.register();
