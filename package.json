@@ -1,7 +1,7 @@
 {
 	"name": "guildmdm",
 	"version": "1.0.0",
-	"description": "Manage your discord servers like endpoints",
+	"description": "GuildMDM enables you to manage multiple Discord servers as a single network, using policies to automatically enforce rules across all servers.",
 	"type": "module",
 	"main": "index.ts",
 	"scripts": {
