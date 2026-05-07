@@ -10,7 +10,10 @@ import {
 	StringSelectMenuBuilder,
 } from "discord.js";
 import { networks, nodes } from "../db/index.js";
+import { masterMessage, nodeMessage } from "../messages/setup.js";
 import { SlashCommand } from "../structures/slashcommand.js";
+import type { Network } from "../types/network.js";
+import { NodeType } from "../types/node.js";
 import { errorMessage, permissionErrorMessage } from "../utils/messages.js";
 
 export default class SetupCommand extends SlashCommand {
@@ -44,7 +47,11 @@ export default class SetupCommand extends SlashCommand {
 		const adminGuild = process.env.ADMIN_GUILD as string;
 		const node = await nodes.getNode(interaction.guild.id);
 		const nodeStatus =
-			node?.type === undefined ? "setup" : node.type === 1 ? "master" : "node";
+			node?.type === undefined
+				? "setup"
+				: node.type === NodeType.master
+					? "master"
+					: "node";
 
 		switch (nodeStatus) {
 			case "setup": {
@@ -130,64 +137,14 @@ export default class SetupCommand extends SlashCommand {
 				if (!node) return;
 				const network = await networks.getNetwork(node.networkid);
 
-				const embed = new EmbedBuilder()
-					.setTitle("Setup - Home")
-					.setDescription(
-						[
-							`You are part of the Network: **${network?.name || "Deleted"}**`,
-							"",
-							`**ID:** ${network?.id || "Deleted"}`,
-							`**Join Key:** ${network?.joinkey || "Deleted"}`,
-						].join("\n"),
-					);
-
-				const row = new ActionRowBuilder<StringSelectMenuBuilder>({
-					components: [
-						new StringSelectMenuBuilder()
-							.setCustomId("setup:node")
-							.setOptions([{ label: "Leave Network", value: "leave" }]),
-					],
-				});
-
-				await interaction.reply({
-					embeds: [embed],
-					components: [row],
-					flags: MessageFlags.Ephemeral,
-				});
+				await interaction.reply(nodeMessage(network || ({} as Network)));
 				return;
 			}
 			case "master": {
 				if (!node) return;
 				const network = await networks.getNetwork(node.networkid);
 
-				const embed = new EmbedBuilder()
-					.setTitle("Setup - Home")
-					.setDescription(
-						[
-							`You are the master of the Network: **${network?.name || "Deleted"}**`,
-							"",
-							`**ID:** ${network?.id || "Deleted"}`,
-							`**Join Key:** ${network?.joinkey || "Deleted"}`,
-						].join("\n"),
-					);
-
-				const row = new ActionRowBuilder<StringSelectMenuBuilder>({
-					components: [
-						new StringSelectMenuBuilder()
-							.setCustomId("setup:master")
-							.setOptions([
-								{ label: "Manage Members", value: "members" },
-								{ label: "Rename Network", value: "rename" },
-								{ label: "Delete Network", value: "delete" },
-							]),
-					],
-				});
-
-				await interaction.reply({
-					embeds: [embed],
-					components: [row],
-					flags: MessageFlags.Ephemeral,
-				});
+				await interaction.reply(masterMessage(network || ({} as Network)));
 				return;
 			}
 		}

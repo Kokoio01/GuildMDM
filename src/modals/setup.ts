@@ -1,18 +1,19 @@
-import {
-	ActionRowBuilder,
-	EmbedBuilder,
-	MessageFlags,
-	type ModalSubmitInteraction,
-	PermissionsBitField,
-	StringSelectMenuBuilder,
-} from "discord.js";
+import { type ModalSubmitInteraction, PermissionsBitField } from "discord.js";
 import { joinrequests, networks, nodes } from "../db/index.js";
+import { masterMessage } from "../messages/setup.js";
 import { ModalHandler } from "../structures/modalhandler.js";
+import type { Network } from "../types/network.js";
+import { NodeType } from "../types/node.js";
+import { internalBus } from "../utils/eventBus.js";
+import { logger } from "../utils/logger.js";
 import {
 	errorMessage,
 	permissionErrorMessage,
 	successMessage,
 } from "../utils/messages.js";
+
+// A bit janky, but it works
+const workLocks = new Set<number>();
 
 export default class SetupModal extends ModalHandler {
 	public name: string = "setup";
@@ -64,34 +65,8 @@ export default class SetupModal extends ModalHandler {
 						name,
 						interaction.guild.id,
 					);
-					const embed = new EmbedBuilder()
-						.setTitle("Setup - Home")
-						.setDescription(
-							[
-								`You are the master of the Network: **${network?.name || "Deleted"}**`,
-								"",
-								`**ID:** ${network?.id || "Deleted"}`,
-								`**Join Key:** ${network?.joinkey || "Deleted"}`,
-							].join("\n"),
-						);
 
-					const row = new ActionRowBuilder<StringSelectMenuBuilder>({
-						components: [
-							new StringSelectMenuBuilder()
-								.setCustomId("setup:master")
-								.setOptions([
-									{ label: "Manage Members", value: "members" },
-									{ label: "Rename Network", value: "rename" },
-									{ label: "Delete Network", value: "delete" },
-								]),
-						],
-					});
-
-					await interaction.reply({
-						embeds: [embed],
-						components: [row],
-						flags: MessageFlags.Ephemeral,
-					});
+					await interaction.reply(masterMessage(network || ({} as Network)));
 				}
 				return;
 			}
@@ -163,6 +138,118 @@ export default class SetupModal extends ModalHandler {
 					}
 				}
 				return;
+			}
+			case "master": {
+				const type = interaction.customId.split(":")[2];
+
+				switch (type) {
+					case "delete": {
+						await interaction.deferReply();
+
+						const node = await nodes.getNode(interaction.guild.id);
+						if (!node || node.type !== NodeType.master) return;
+
+						if (workLocks.has(node.networkid)) {
+							await interaction.followUp(
+								errorMessage(
+									"Deletion in progress",
+									"This network is already being deleted.",
+								),
+							);
+							return;
+						}
+
+						const network = await networks.getNetwork(node.networkid);
+						if (!network) {
+							await interaction.followUp(
+								errorMessage(
+									"This Network does not exist!",
+									"Please make sure that you are in a Network and that the Network exists!",
+								),
+							);
+							return;
+						}
+
+						try {
+							workLocks.add(network.id);
+
+							const networkNodes = await networks.getNodes(network.id);
+
+							await networks.deleteNetwork(network.id);
+
+							networkNodes?.forEach((node) => {
+								internalBus.emit("network_disband", node.guildid, network);
+							});
+
+							await interaction.followUp(
+								successMessage("Deleted", "The Network has been deleted."),
+							);
+						} catch (err) {
+							logger.error(err);
+							await interaction.followUp(
+								errorMessage(
+									"Error",
+									"An error occurred while deleting the Network. Please try again later.",
+								),
+							);
+						} finally {
+							workLocks.delete(network.id);
+						}
+						return;
+					}
+				}
+				return;
+			}
+			case "node": {
+				const type = interaction.customId.split(":")[2];
+
+				switch (type) {
+					case "leave": {
+						await interaction.deferReply();
+
+						const node = await nodes.getNode(interaction.guild.id);
+						if (!node || node.type !== NodeType.normal) return;
+
+						if (workLocks.has(node.id)) {
+							await interaction.followUp(
+								errorMessage(
+									"Leaving in progress",
+									"This node is already leaving the network.",
+								),
+							);
+							return;
+						}
+
+						const master = await networks.getMasterNode(node.networkid);
+						if (!master) {
+							await interaction.followUp(
+								errorMessage(
+									"This Node is not part of a Network!",
+									"Please make sure that you are in a Network and that the Network exists!",
+								),
+							);
+							return;
+						}
+
+						try {
+							workLocks.add(node.id);
+
+							await nodes.deleteNode(node.guildid);
+
+							internalBus.emit("network_leave", master.guildid, node.guildid);
+						} catch (err) {
+							logger.error(err);
+							await interaction.followUp(
+								errorMessage(
+									"Error",
+									"An error occurred while deleting the Network. Please try again later.",
+								),
+							);
+						} finally {
+							workLocks.delete(node.id);
+						}
+					}
+				}
 			}
 		}
 	}

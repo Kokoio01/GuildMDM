@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import type { Network } from "../../types/network.js";
+import type { Node } from "../../types/node.js";
 import { logger } from "../../utils/logger.js";
 import { pool } from "../index.js";
 
@@ -37,6 +38,38 @@ export class network {
 		}
 	}
 
+	public async getNodes(networkId: number): Promise<Node[] | null> {
+		const conn = await pool.connect();
+		try {
+			const result = await conn.query(
+				"SELECT * FROM nodes WHERE networkId = $1",
+				[networkId],
+			);
+			return result.rows as Node[];
+		} catch (err) {
+			logger.error(err);
+			return null;
+		} finally {
+			conn.release();
+		}
+	}
+
+	public async getMasterNode(networkId: number): Promise<Node | null> {
+		const conn = await pool.connect();
+		try {
+			const result = await conn.query(
+				"SELECT * FROM nodes WHERE networkId = $1 AND type = 1 LIMIT 1",
+				[networkId],
+			);
+			return result.rows[0] as Node;
+		} catch (err) {
+			logger.error(err);
+			return null;
+		} finally {
+			conn.release();
+		}
+	}
+
 	public async createNetwork(
 		name: string,
 		guildId: string,
@@ -61,6 +94,16 @@ export class network {
 			await conn.query("ROLLBACK");
 			logger.error(err);
 			return null;
+		} finally {
+			conn.release();
+		}
+	}
+
+	public async deleteNetwork(networkId: number): Promise<void> {
+		// throw error to cancel disband events
+		const conn = await pool.connect();
+		try {
+			await conn.query("DELETE FROM networks WHERE id = $1", [networkId]);
 		} finally {
 			conn.release();
 		}

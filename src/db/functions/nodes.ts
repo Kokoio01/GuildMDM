@@ -17,4 +17,14 @@ export class node {
 			conn.release();
 		}
 	}
+
+	public async deleteNode(guildId: string): Promise<void> {
+		const conn = await pool.connect();
+		try {
+			// throw error to cancel leaving events
+			await conn.query("DELETE FROM nodes WHERE guildid = $1", [guildId]);
+		} finally {
+			conn.release();
+		}
+	}
 }

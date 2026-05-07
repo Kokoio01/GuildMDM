@@ -5,7 +5,9 @@ import {
 	ButtonStyle,
 	EmbedBuilder,
 	MessageFlags,
+	ModalBuilder,
 	PermissionsBitField,
+	TextDisplayBuilder,
 } from "discord.js";
 import { SelectHandler } from "../structures/selecthandler.js";
 import { errorMessage, permissionErrorMessage } from "../utils/messages.js";
@@ -84,6 +86,86 @@ export default class setupSelect extends SelectHandler {
 						flags: MessageFlags.Ephemeral,
 					});
 				}
+				return;
+			}
+			case "node": {
+				const type = interaction.values[0];
+				switch (type) {
+					case "leave": {
+						const modal = new ModalBuilder()
+							.setCustomId("setup:node:leave")
+							.setTitle("Setup - Node - Leave Network")
+							.addTextDisplayComponents(
+								new TextDisplayBuilder({
+									content:
+										"You are leaving the network, leaving a network will remove all policies from the guild and the bot will cease all operations on this server.",
+								}),
+							);
+
+						await interaction.showModal(modal);
+						return;
+					}
+				}
+				return;
+			}
+			case "master": {
+				const type = interaction.values[0];
+				switch (type) {
+					case "members": {
+						//TODO: MEMBERS
+						return;
+					}
+					case "rename": {
+						//TODO: RENAME
+						/*
+						const modal = new ModalBuilder()
+							.setCustomId("setup:master:rename")
+							.setTitle("Setup - Node - Rename Network")
+							.addLabelComponents(
+								new LabelBuilder()
+									.setLabel("New Network Name")
+									.setTextInputComponent(
+										new TextInputBuilder({
+											customId: "name",
+											style: TextInputStyle.Short,
+											required: true,
+											max_length: 200,
+										}),
+									),
+							);
+
+						await interaction.showModal(modal);
+						*/
+						return;
+					}
+					case "delete": {
+						const embed = new EmbedBuilder()
+							.setTitle("Delete Network")
+							.setDescription(
+								"**You are about to delete your network. This action is irreversible!**\n\n**Are you sure you want to continue?**",
+							)
+							.setColor(0x800020);
+
+						const row = new ActionRowBuilder<ButtonBuilder>().addComponents([
+							new ButtonBuilder()
+								.setCustomId("setup:master:delete")
+								.setLabel("Confirm")
+								.setStyle(ButtonStyle.Danger),
+							new ButtonBuilder()
+								.setCustomId("setup:master")
+								.setLabel("Cancel")
+								.setStyle(ButtonStyle.Secondary),
+						]);
+
+						await interaction.reply({
+							embeds: [embed],
+							components: [row],
+							flags: MessageFlags.Ephemeral,
+						});
+						return;
+					}
+				}
+				return;
 			}
 		}
 	}

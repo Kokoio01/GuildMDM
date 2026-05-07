@@ -1,10 +1,11 @@
 import EventEmitter from "node:events";
-
-import type { ChatInputCommandInteraction } from "discord.js";
+import type { Network } from "../types/network.js";
 
 export interface internalEvents {
 	mock_register: [];
-	test: [interaction: ChatInputCommandInteraction];
+
+	network_disband: [guildId: string, network: Network];
+	network_leave: [masterId: string, leavingId: string];
 }
 
 export class EventBus extends EventEmitter {
