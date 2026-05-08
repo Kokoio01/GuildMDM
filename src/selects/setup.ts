@@ -7,35 +7,19 @@ import {
 	LabelBuilder,
 	MessageFlags,
 	ModalBuilder,
-	PermissionsBitField,
 	TextDisplayBuilder,
 	TextInputBuilder,
 	TextInputStyle,
 } from "discord.js";
 import { SelectHandler } from "../structures/selecthandler.js";
-import { errorMessage, permissionErrorMessage } from "../utils/messages.js";
+import { validateAdmin } from "../utils/permissions.js";
 
 export default class setupSelect extends SelectHandler {
 	public name: string = "setup";
 
 	async execute(interaction: AnySelectMenuInteraction): Promise<void> {
-		if (!interaction.guild) {
-			await interaction.reply(
-				errorMessage(
-					"Not a Guild!",
-					"This command can only be executed in guilds.",
-				),
-			);
-			return;
-		}
-		if (
-			!interaction.memberPermissions?.has(
-				PermissionsBitField.Flags.Administrator,
-			)
-		) {
-			await interaction.reply(permissionErrorMessage("Administrator"));
-			return;
-		}
+		if (!(await validateAdmin(interaction))) return;
+		if (!interaction.guild) return; //already in validate just for ts
 		const action = interaction.customId.split(":")[1];
 
 		switch (action) {

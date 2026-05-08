@@ -1,4 +1,4 @@
-import {MessageFlags, type ModalSubmitInteraction, PermissionsBitField} from "discord.js";
+import { MessageFlags, type ModalSubmitInteraction } from "discord.js";
 import { joinrequests, networks, nodes } from "../db/index.js";
 import { masterMessage } from "../messages/setup.js";
 import { ModalHandler } from "../structures/modalhandler.js";
@@ -6,11 +6,8 @@ import type { Network } from "../types/network.js";
 import { NodeType } from "../types/node.js";
 import { internalBus } from "../utils/eventBus.js";
 import { logger } from "../utils/logger.js";
-import {
-	errorMessage,
-	permissionErrorMessage,
-	successMessage,
-} from "../utils/messages.js";
+import { errorMessage, successMessage } from "../utils/messages.js";
+import { validateAdmin } from "../utils/permissions.js";
 
 // A bit janky, but it works
 const workLocks = new Set<number>();
@@ -19,23 +16,8 @@ export default class SetupModal extends ModalHandler {
 	public name: string = "setup";
 
 	async execute(interaction: ModalSubmitInteraction): Promise<void> {
-		if (!interaction.guild) {
-			await interaction.reply(
-				errorMessage(
-					"Not a Guild!",
-					"This command can only be executed in guilds.",
-				),
-			);
-			return;
-		}
-		if (
-			!interaction.memberPermissions?.has(
-				PermissionsBitField.Flags.Administrator,
-			)
-		) {
-			await interaction.reply(permissionErrorMessage("Administrator"));
-			return;
-		}
+		if (!(await validateAdmin(interaction))) return;
+		if (!interaction.guild) return; //already in validate just for ts
 		const action = interaction.customId.split(":")[1];
 		const adminGuild = process.env.ADMIN_GUILD as string;
 
@@ -142,7 +124,7 @@ export default class SetupModal extends ModalHandler {
 			case "master": {
 				const type = interaction.customId.split(":")[2];
 
-				await interaction.deferReply({flags: MessageFlags.Ephemeral});
+				await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 				const node = await nodes.getNode(interaction.guild.id);
 				if (!node || node.type !== NodeType.master) return;

@@ -5,7 +5,6 @@ import {
 	type ChatInputCommandInteraction,
 	EmbedBuilder,
 	MessageFlags,
-	PermissionsBitField,
 	SlashCommandBuilder,
 	StringSelectMenuBuilder,
 } from "discord.js";
@@ -14,7 +13,7 @@ import { masterMessage, nodeMessage } from "../messages/setup.js";
 import { SlashCommand } from "../structures/slashcommand.js";
 import type { Network } from "../types/network.js";
 import { NodeType } from "../types/node.js";
-import { errorMessage, permissionErrorMessage } from "../utils/messages.js";
+import { validateAdmin } from "../utils/permissions.js";
 
 export default class SetupCommand extends SlashCommand {
 	constructor() {
@@ -26,24 +25,8 @@ export default class SetupCommand extends SlashCommand {
 	}
 
 	async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-		if (!interaction.guild) {
-			await interaction.reply(
-				errorMessage(
-					"Not a Guild!",
-					"This command can only be executed in guilds.",
-				),
-			);
-			return;
-		}
-		if (
-			!interaction.memberPermissions?.has(
-				PermissionsBitField.Flags.Administrator,
-			)
-		) {
-			await interaction.reply(permissionErrorMessage("Administrator"));
-			return;
-		}
-
+		if (!(await validateAdmin(interaction))) return;
+		if (!interaction.guild) return; //already in validate just for ts
 		const adminGuild = process.env.ADMIN_GUILD as string;
 		const node = await nodes.getNode(interaction.guild.id);
 		const nodeStatus =

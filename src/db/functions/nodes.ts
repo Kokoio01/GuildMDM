@@ -1,21 +1,15 @@
 import type { Node } from "../../types/node.js";
 import { pool } from "../index.js";
+import { safeQuery } from "../utils.js";
 
 export class node {
 	public async getNode(guildId: string): Promise<Node | null> {
-		const conn = await pool.connect();
-		try {
-			const result = await conn.query(
-				"SELECT * FROM nodes WHERE guildid = $1 LIMIT 1",
-				[guildId],
-			);
-
-			return result.rows[0] as Node;
-		} catch {
-			return null;
-		} finally {
-			conn.release();
-		}
+		const result = await safeQuery(
+			"SELECT * FROM nodes WHERE guildid = $1 LIMIT 1",
+			[guildId],
+		);
+		if (!result) return null;
+		return result.rows[0] as Node;
 	}
 
 	public async deleteNode(guildId: string): Promise<void> {
