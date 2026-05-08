@@ -1,4 +1,4 @@
-import { type ModalSubmitInteraction, PermissionsBitField } from "discord.js";
+import {MessageFlags, type ModalSubmitInteraction, PermissionsBitField} from "discord.js";
 import { joinrequests, networks, nodes } from "../db/index.js";
 import { masterMessage } from "../messages/setup.js";
 import { ModalHandler } from "../structures/modalhandler.js";
@@ -142,34 +142,70 @@ export default class SetupModal extends ModalHandler {
 			case "master": {
 				const type = interaction.customId.split(":")[2];
 
+				await interaction.deferReply({flags: MessageFlags.Ephemeral});
+
+				const node = await nodes.getNode(interaction.guild.id);
+				if (!node || node.type !== NodeType.master) return;
+
+				if (workLocks.has(node.networkid)) {
+					await interaction.followUp(
+						errorMessage(
+							"Deletion in progress",
+							"This network is already being deleted.",
+						),
+					);
+					return;
+				}
+
+				const network = await networks.getNetwork(node.networkid);
+				if (!network) {
+					await interaction.followUp(
+						errorMessage(
+							"This Network does not exist!",
+							"Please make sure that you are in a Network and that the Network exists!",
+						),
+					);
+					return;
+				}
+
 				switch (type) {
+					case "rename": {
+						const name = interaction.fields.getTextInputValue("name");
+						if (name.length > 200 || name.length < 2) {
+							await interaction.followUp(
+								errorMessage(
+									"Invalid Name",
+									"The name must be between 2 and 200 characters long.",
+								),
+							);
+							return;
+						}
+
+						try {
+							workLocks.add(network.id);
+
+							await networks.updateNetwork(network.id, name);
+
+							await interaction.followUp(
+								successMessage(
+									"Network renamed",
+									`The Network has been renamed to **${name}**`,
+								),
+							);
+						} catch (err) {
+							logger.error(err);
+							await interaction.followUp(
+								errorMessage(
+									"Error",
+									"An error occurred while renaming the Network. Please try again later.",
+								),
+							);
+						} finally {
+							workLocks.delete(network.id);
+						}
+						return;
+					}
 					case "delete": {
-						await interaction.deferReply();
-
-						const node = await nodes.getNode(interaction.guild.id);
-						if (!node || node.type !== NodeType.master) return;
-
-						if (workLocks.has(node.networkid)) {
-							await interaction.followUp(
-								errorMessage(
-									"Deletion in progress",
-									"This network is already being deleted.",
-								),
-							);
-							return;
-						}
-
-						const network = await networks.getNetwork(node.networkid);
-						if (!network) {
-							await interaction.followUp(
-								errorMessage(
-									"This Network does not exist!",
-									"Please make sure that you are in a Network and that the Network exists!",
-								),
-							);
-							return;
-						}
-
 						try {
 							workLocks.add(network.id);
 

@@ -4,10 +4,13 @@ import {
 	ButtonBuilder,
 	ButtonStyle,
 	EmbedBuilder,
+	LabelBuilder,
 	MessageFlags,
 	ModalBuilder,
 	PermissionsBitField,
 	TextDisplayBuilder,
+	TextInputBuilder,
+	TextInputStyle,
 } from "discord.js";
 import { SelectHandler } from "../structures/selecthandler.js";
 import { errorMessage, permissionErrorMessage } from "../utils/messages.js";
@@ -116,8 +119,6 @@ export default class setupSelect extends SelectHandler {
 						return;
 					}
 					case "rename": {
-						//TODO: RENAME
-						/*
 						const modal = new ModalBuilder()
 							.setCustomId("setup:master:rename")
 							.setTitle("Setup - Node - Rename Network")
@@ -135,7 +136,6 @@ export default class setupSelect extends SelectHandler {
 							);
 
 						await interaction.showModal(modal);
-						*/
 						return;
 					}
 					case "delete": {
