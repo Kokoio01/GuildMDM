@@ -12,6 +12,7 @@ import type { ModalHandler } from "./src/structures/modalhandler.js";
 import type { SelectHandler } from "./src/structures/selecthandler.js";
 import type { SlashCommand } from "./src/structures/slashcommand.js";
 import { internalBus } from "./src/utils/eventBus.js";
+import { guildHandler } from "./src/utils/guildHandler.js";
 import { logger } from "./src/utils/logger.js";
 
 const client = new ExtendedClient({ intents: [GatewayIntentBits.Guilds] });
@@ -74,6 +75,10 @@ client.once(Events.ClientReady, async (readyClient) => {
 	await client.application?.commands.set(
 		client.slashcommands.map((cmd) => cmd.data.toJSON()),
 	);
+
+	logger.info(`Syncing Starting Guilds: ${client.guilds.cache.size}`);
+	await guildHandler.pushGuilds([...client.guilds.cache.values()]);
+	await guildHandler.setRunning(true);
 
 	client.user?.setPresence({
 		activities: [

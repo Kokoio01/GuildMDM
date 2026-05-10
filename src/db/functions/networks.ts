@@ -70,8 +70,10 @@ export class network {
 		}
 	}
 
+	/**
+	 * Warning: throws error
+	 */
 	public async updateNetwork(networkId: number, name: string): Promise<void> {
-		// throw error to cancel followup
 		const conn = await pool.connect();
 		try {
 			await conn.query("UPDATE networks SET name = $1 WHERE id = $2", [
@@ -83,8 +85,10 @@ export class network {
 		}
 	}
 
+	/**
+	 * Warning: throws error
+	 */
 	public async deleteNetwork(networkId: number): Promise<void> {
-		// throw error to cancel disband events
 		const conn = await pool.connect();
 		try {
 			await conn.query("DELETE FROM networks WHERE id = $1", [networkId]);

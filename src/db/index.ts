@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import { guild } from "./functions/guilds.js";
 import { joinrequest } from "./functions/joinrequests.js";
 import { network } from "./functions/networks.js";
 import { node } from "./functions/nodes.js";
@@ -25,3 +26,4 @@ export async function initDB(): Promise<void> {
 export const nodes = new node();
 export const networks = new network();
 export const joinrequests = new joinrequest();
+export const guilds = new guild();
