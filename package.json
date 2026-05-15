@@ -6,6 +6,7 @@
 	"main": "index.ts",
 	"scripts": {
 		"dev": "tsx index.ts | pino-pretty",
+		"dev:doppler": "doppler run --forward-signals -- pnpm dev",
 		"check": "pnpm biome check .",
 		"check:apply": "pnpm biome check --write .",
 		"format": "pnpm biome format --write ."

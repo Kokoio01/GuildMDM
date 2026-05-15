@@ -12,14 +12,14 @@ import { ButtonHandler } from "../structures/buttonhandler.js";
 import type { Network } from "../types/network.js";
 import { NodeType } from "../types/node.js";
 import { errorMessage } from "../utils/messages.js";
-import { validateAdmin } from "../utils/permissions.js";
+import { ensureGuild, validateAdmin } from "../utils/permissions.js";
 
 export default class SetupButton extends ButtonHandler {
 	public name: string = "setup";
 
 	async execute(interaction: ButtonInteraction): Promise<void> {
+		if (!ensureGuild(interaction)) return;
 		if (!(await validateAdmin(interaction))) return;
-		if (!interaction.guild) return; //already in validate just for ts
 		const action = interaction.customId.split(":")[1];
 		const adminGuild = process.env.ADMIN_GUILD as string;
 

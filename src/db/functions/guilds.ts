@@ -43,12 +43,12 @@ export class guild {
 		}
 	}
 
-	public async getGuilds(ids: string[]): Promise<DBGuild | null> {
+	public async getGuilds(ids: string[]): Promise<DBGuild[] | null> {
 		const result = await safeQuery(
 			"SELECT id, shardId, name, updatedAt FROM guilds WHERE id = ANY($1::text[])",
 			[ids],
 		);
 		if (!result) return null;
-		return result.rows[0] as DBGuild;
+		return result.rows as DBGuild[];
 	}
 }

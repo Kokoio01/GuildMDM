@@ -11,15 +11,19 @@ import {
 	TextInputBuilder,
 	TextInputStyle,
 } from "discord.js";
+import { networks, nodes } from "../db/index.js";
+import { memberMessage } from "../messages/setup.js";
 import { SelectHandler } from "../structures/selecthandler.js";
-import { validateAdmin } from "../utils/permissions.js";
+import { NodeType } from "../types/node.js";
+import { errorMessage } from "../utils/messages.js";
+import { ensureGuild, validateAdmin } from "../utils/permissions.js";
 
 export default class setupSelect extends SelectHandler {
 	public name: string = "setup";
 
 	async execute(interaction: AnySelectMenuInteraction): Promise<void> {
+		if (!ensureGuild(interaction)) return;
 		if (!(await validateAdmin(interaction))) return;
-		if (!interaction.guild) return; //already in validate just for ts
 		const action = interaction.customId.split(":")[1];
 
 		switch (action) {
@@ -99,7 +103,32 @@ export default class setupSelect extends SelectHandler {
 				const type = interaction.values[0];
 				switch (type) {
 					case "members": {
-						//TODO: MEMBERS
+						const node = await nodes.getNode(interaction.guild.id);
+						if (!node || node.type !== NodeType.master) {
+							await interaction.reply(
+								errorMessage(
+									"This server is not a network master!",
+									"This node is either not in a network or is not a network master!",
+								),
+							);
+							return;
+						}
+
+						const network = await networks.getNetwork(node.networkid);
+						if (!network) {
+							await interaction.reply(
+								errorMessage(
+									"This Network does not exist!",
+									"Please make sure that you are in a Network and that the Network exists!",
+								),
+							);
+							return;
+						}
+						const networkNodes = await networks.getNodes(network.id);
+
+						await interaction.reply(
+							await memberMessage(network, networkNodes, 0),
+						);
 						return;
 					}
 					case "rename": {

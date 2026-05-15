@@ -7,7 +7,7 @@ import { NodeType } from "../types/node.js";
 import { internalBus } from "../utils/eventBus.js";
 import { logger } from "../utils/logger.js";
 import { errorMessage, successMessage } from "../utils/messages.js";
-import { validateAdmin } from "../utils/permissions.js";
+import { ensureGuild, validateAdmin } from "../utils/permissions.js";
 
 // A bit janky, but it works
 const workLocks = new Set<number>();
@@ -16,8 +16,8 @@ export default class SetupModal extends ModalHandler {
 	public name: string = "setup";
 
 	async execute(interaction: ModalSubmitInteraction): Promise<void> {
+		if (!ensureGuild(interaction)) return;
 		if (!(await validateAdmin(interaction))) return;
-		if (!interaction.guild) return; //already in validate just for ts
 		const action = interaction.customId.split(":")[1];
 		const adminGuild = process.env.ADMIN_GUILD as string;
 
@@ -255,6 +255,13 @@ export default class SetupModal extends ModalHandler {
 							await nodes.deleteNode(node.guildid);
 
 							internalBus.emit("network_leave", master.guildid, node.guildid);
+
+							await interaction.followUp(
+								successMessage(
+									"Goodbye!",
+									"The Node has been left the Network.",
+								),
+							);
 						} catch (err) {
 							logger.error(err);
 							await interaction.followUp(
