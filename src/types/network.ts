@@ -8,6 +8,7 @@ export enum RequestStatus {
 	PENDING = 0,
 	ACCEPTED = 1,
 	DECLINED = 2,
+	EXPIRED = 3,
 }
 
 export interface JoinRequest {
@@ -18,5 +19,6 @@ export interface JoinRequest {
 	status:
 		| RequestStatus.PENDING
 		| RequestStatus.ACCEPTED
-		| RequestStatus.DECLINED;
+		| RequestStatus.DECLINED
+		| RequestStatus.EXPIRED;
 }

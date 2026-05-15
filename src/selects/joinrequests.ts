@@ -1,12 +1,11 @@
 import type { StringSelectMenuInteraction } from "discord.js";
-import { joinrequests, networks, nodes } from "../db/index.js";
+import { joinrequests, networks } from "../db/index.js";
 import {
-	joinRequestMessage,
+	joinRequestDetail,
 	masterMessage,
-	memberDetail,
+	memberMessage,
 } from "../messages/setup.js";
 import { SelectHandler } from "../structures/selecthandler.js";
-import { RequestStatus } from "../types/network.js";
 import { NodeType } from "../types/node.js";
 import { errorMessage } from "../utils/messages.js";
 import {
@@ -15,8 +14,8 @@ import {
 	validateAdmin,
 } from "../utils/permissions.js";
 
-export default class MembersSelect extends SelectHandler {
-	name = "members";
+export default class JoinRequestSelect extends SelectHandler {
+	name = "joinrequests";
 
 	async execute(interaction: StringSelectMenuInteraction) {
 		if (!ensureGuild(interaction)) return;
@@ -41,7 +40,7 @@ export default class MembersSelect extends SelectHandler {
 				await interaction.reply(masterMessage(network));
 				return;
 			}
-			case "joinrequests": {
+			case "members": {
 				const network = await networks.getNetwork(node.networkid);
 				if (!network) {
 					await interaction.reply(
@@ -52,25 +51,20 @@ export default class MembersSelect extends SelectHandler {
 					);
 					return;
 				}
-				const joinRequests = await joinrequests.getJoinRequests(
-					network.id,
-					RequestStatus.PENDING,
-				);
+				const networkNodes = await networks.getNodes(network.id);
 
-				await interaction.reply(
-					await joinRequestMessage(network, joinRequests, 0),
-				);
+				await interaction.reply(await memberMessage(network, networkNodes, 0));
 				return;
 			}
 		}
-		if (action.split(":")[0] === "member") {
-			const guildId = action.split(":")[1];
-			if (!guildId) return;
+		if (action.split(":")[0] === "jr") {
+			const requestId = action.split(":")[1];
+			if (!requestId) return;
 
-			const node = await nodes.getNode(guildId);
-			if (!node) return;
+			const request = await joinrequests.getJoinRequest(requestId);
+			if (!request) return;
 
-			await interaction.reply(await memberDetail(node));
+			await interaction.reply(await joinRequestDetail(request));
 			return;
 		}
 	}

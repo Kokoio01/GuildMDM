@@ -6,6 +6,9 @@ export interface internalEvents {
 
 	network_disband: [guildId: string, network: Network];
 	network_leave: [masterId: string, leavingId: string];
+
+	joinRequest_decline: [guildId: string, network: Network];
+	joinRequest_accept: [guildId: string, network: Network];
 }
 
 export class EventBus extends EventEmitter {

@@ -9,7 +9,7 @@ import {
 	StringSelectMenuOptionBuilder,
 } from "discord.js";
 import { guilds } from "../db/index.js";
-import type { Network } from "../types/network.js";
+import type { JoinRequest, Network } from "../types/network.js";
 import { type Node, NodeType } from "../types/node.js";
 
 export function masterMessage(network: Network): InteractionReplyOptions {
@@ -132,7 +132,7 @@ export async function memberMessage(
 			new ActionRowBuilder<ButtonBuilder>({
 				components: [
 					new ButtonBuilder()
-						.setCustomId(`members:page:${current - 1}}`)
+						.setCustomId(`members:page:${current - 1}`)
 						.setEmoji("◀️")
 						.setDisabled(current - 1 < 1)
 						.setStyle(ButtonStyle.Secondary),
@@ -185,6 +185,139 @@ export async function memberDetail(
 				.setStyle(ButtonStyle.Danger)
 				.setLabel("Kick from Network")
 				.setDisabled(node.type === NodeType.master),
+		],
+	});
+
+	return {
+		embeds: [embed],
+		components: [row],
+		flags: MessageFlags.Ephemeral,
+	};
+}
+
+export async function joinRequestMessage(
+	network: Network,
+	joinRequests: JoinRequest[] | null,
+	page: number = 1,
+): Promise<InteractionReplyOptions> {
+	if (!joinRequests) joinRequests = [];
+	const total = joinRequests.length;
+	const pages = Math.ceil(total / 23);
+	const current = Math.min(Math.max(page, 1), pages);
+	const start = (current - 1) * 23;
+	const selected = joinRequests.slice(start, start + 23);
+
+	let guild = await guilds.getGuilds(
+		selected.map((joinRequest) => joinRequest.guildid),
+	);
+	if (!guild) guild = [];
+	const items = [
+		new StringSelectMenuOptionBuilder()
+			.setLabel("Go Back")
+			.setDescription("Return to the main menu")
+			.setValue("back")
+			.setEmoji("↩️"),
+		new StringSelectMenuOptionBuilder()
+			.setLabel("View Members")
+			.setDescription("See all pending join requests")
+			.setValue("members")
+			.setEmoji("🆕"),
+		...selected.map((jr) =>
+			new StringSelectMenuOptionBuilder()
+				.setLabel(
+					`${guild.find((guild) => guild.id === jr.guildid)?.name} | ${jr.id}` ||
+						"Unknown",
+				)
+				.setDescription(jr.guildid)
+				.setValue(`jr:${jr.id}`),
+		),
+	];
+
+	const embed = new EmbedBuilder()
+		.setTitle("Setup - Join Requests")
+		.setDescription(
+			[
+				`You are the master of the Network: **${network?.name || "Deleted"}**`,
+				"",
+				`**Pending Join Requests:** ${total}`,
+				`**Join Key:** ${network?.joinkey || "Deleted"}`,
+			].join("\n"),
+		);
+
+	const components: ActionRowBuilder[] = [];
+
+	components.push(
+		new ActionRowBuilder<StringSelectMenuBuilder>({
+			components: [
+				new StringSelectMenuBuilder()
+					.setCustomId("joinrequests:main")
+					.setMaxValues(1)
+					.setOptions(items),
+			],
+		}),
+	);
+
+	if (pages > 1) {
+		components.push(
+			new ActionRowBuilder<ButtonBuilder>({
+				components: [
+					new ButtonBuilder()
+						.setCustomId(`joinrequests:page:${current - 1}`)
+						.setEmoji("◀️")
+						.setDisabled(current - 1 < 1)
+						.setStyle(ButtonStyle.Secondary),
+					new ButtonBuilder()
+						.setCustomId("disabled")
+						.setLabel(`Page ${current}/${pages}`)
+						.setDisabled(true)
+						.setStyle(ButtonStyle.Secondary),
+					new ButtonBuilder()
+						.setCustomId(`joinrequests:page:${current + 1}`)
+						.setEmoji("▶️")
+						.setDisabled(current + 1 > pages)
+						.setStyle(ButtonStyle.Secondary),
+				],
+			}),
+		);
+	}
+
+	return {
+		embeds: [embed],
+		components: components.map((component) => component.toJSON()),
+		flags: MessageFlags.Ephemeral,
+	};
+}
+
+export async function joinRequestDetail(
+	joinRequest: JoinRequest,
+): Promise<InteractionReplyOptions> {
+	const guild = ((await guilds.getGuilds([joinRequest.guildid])) || [])[0];
+	const name = guild ? guild.name : "Unknown";
+
+	const embed = new EmbedBuilder()
+		.setTitle(`Viewing Join request: ${name}`)
+		.setDescription(
+			[
+				`**ID:** ${joinRequest.id}`,
+				`**Guild ID:** ${joinRequest.guildid}`,
+				`**Message:** ${joinRequest.message}`,
+			].join("\n"),
+		);
+
+	const row = new ActionRowBuilder<ButtonBuilder>({
+		components: [
+			new ButtonBuilder()
+				.setCustomId("joinrequests:overview")
+				.setEmoji("↩️")
+				.setStyle(ButtonStyle.Secondary),
+			new ButtonBuilder()
+				.setCustomId(`joinrequests:accept:${joinRequest.id}`)
+				.setStyle(ButtonStyle.Success)
+				.setLabel("Accept"),
+			new ButtonBuilder()
+				.setCustomId(`joinrequests:decline:${joinRequest.id}`)
+				.setStyle(ButtonStyle.Danger)
+				.setLabel("Decline"),
 		],
 	});
 
