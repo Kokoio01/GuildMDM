@@ -16,7 +16,7 @@ export default class Disband extends InternalEvent<"joinRequest_decline"> {
 		const embed = new EmbedBuilder()
 			.setTitle("Join Request Declined")
 			.setDescription(
-				`Your Join Request to join the network ${network.name} has been declined.`
+				`Your Join Request to join the network ${network.name} has been declined.`,
 			);
 
 		await channel.send({ embeds: [embed] });

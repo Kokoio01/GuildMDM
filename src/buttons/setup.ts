@@ -7,10 +7,7 @@ import {
 	TextInputStyle,
 } from "discord.js";
 import { networks, nodes } from "../db/index.js";
-import { masterMessage } from "../messages/setup.js";
 import { ButtonHandler } from "../structures/buttonhandler.js";
-import type { Network } from "../types/network.js";
-import { NodeType } from "../types/node.js";
 import { errorMessage } from "../utils/messages.js";
 import { ensureGuild, validateAdmin } from "../utils/permissions.js";
 
@@ -138,34 +135,6 @@ export default class SetupButton extends ButtonHandler {
 					await interaction.showModal(modal);
 				}
 				return;
-			}
-			case "master": {
-				const type = interaction.customId.split(":")[2];
-
-				const node = await nodes.getNode(interaction.guild.id);
-				if (!node || node.type !== NodeType.master) return;
-				const network = await networks.getNetwork(node.networkid);
-
-				switch (type) {
-					case "delete": {
-						const modal = new ModalBuilder()
-							.setCustomId("setup:master:delete")
-							.setTitle("Setup - Master - Delete Network")
-							.addTextDisplayComponents(
-								new TextDisplayBuilder({
-									content:
-										"**This Action can not be undone**, are you really sure that you want to delete this Network, this will force leave all Nodes and force delete all policies!",
-								}),
-							);
-
-						await interaction.showModal(modal);
-						return;
-					}
-					default: {
-						await interaction.reply(masterMessage(network || ({} as Network)));
-						return;
-					}
-				}
 			}
 		}
 	}

@@ -13,7 +13,7 @@ import { masterMessage, nodeMessage } from "../messages/setup.js";
 import { SlashCommand } from "../structures/slashcommand.js";
 import type { Network } from "../types/network.js";
 import { NodeType } from "../types/node.js";
-import { validateAdmin } from "../utils/permissions.js";
+import { ensureGuild, validateAdmin } from "../utils/permissions.js";
 
 export default class SetupCommand extends SlashCommand {
 	constructor() {
@@ -25,8 +25,8 @@ export default class SetupCommand extends SlashCommand {
 	}
 
 	async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+		if (!ensureGuild(interaction)) return;
 		if (!(await validateAdmin(interaction))) return;
-		if (!interaction.guild) return; //already in validate just for ts
 		const adminGuild = process.env.ADMIN_GUILD as string;
 		const node = await nodes.getNode(interaction.guild.id);
 		const nodeStatus =

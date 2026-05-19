@@ -26,7 +26,7 @@ export function masterMessage(network: Network): InteractionReplyOptions {
 
 	const row = new ActionRowBuilder<StringSelectMenuBuilder>({
 		components: [
-			new StringSelectMenuBuilder().setCustomId("setup:master").setOptions([
+			new StringSelectMenuBuilder().setCustomId("master:main").setOptions([
 				{ label: "Manage Members", value: "members" },
 				{ label: "Rename Network", value: "rename" },
 				{ label: "Delete Network", value: "delete" },
@@ -56,7 +56,7 @@ export function nodeMessage(network: Network): InteractionReplyOptions {
 	const row = new ActionRowBuilder<StringSelectMenuBuilder>({
 		components: [
 			new StringSelectMenuBuilder()
-				.setCustomId("setup:node")
+				.setCustomId("node:main")
 				.setOptions([{ label: "Leave Network", value: "leave" }]),
 		],
 	});

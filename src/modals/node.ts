@@ -1,5 +1,5 @@
-import { MessageFlags, type ModalSubmitInteraction } from "discord.js";
-import { nodes } from "../db/index.js";
+import type { ModalSubmitInteraction } from "discord.js";
+import { networks, nodes } from "../db/index.js";
 import { ModalHandler } from "../structures/modalhandler.js";
 import { NodeType } from "../types/node.js";
 import { internalBus } from "../utils/eventBus.js";
@@ -14,34 +14,22 @@ import {
 // TODO: Move this to a proper Spot, this is not synced between setup and members and should really be in the DB
 const workLocks = new Set<number>();
 
-export default class MembersModal extends ModalHandler {
-	name = "members";
+export default class NodeModal extends ModalHandler {
+	name = "node";
 
 	async execute(interaction: ModalSubmitInteraction): Promise<void> {
 		if (!ensureGuild(interaction)) return;
 		const admin = await validateAdmin(interaction);
-		const node = await ensureNodeType(interaction, NodeType.master);
+		const node = await ensureNodeType(interaction, NodeType.normal);
 		if (!admin || !node) return;
 		const action = interaction.customId.split(":")[1];
 		if (!action) return;
 
 		switch (action) {
-			case "kick": {
-				const guildId = interaction.customId.split(":")[2] || "0";
-				await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+			case "leave": {
+				await interaction.deferReply();
 
-				const leaver = await nodes.getNode(guildId);
-				if (!leaver || leaver.networkid !== node.networkid) {
-					await interaction.followUp(
-						errorMessage(
-							"Guild not in Network",
-							"The guild is not part of the network.",
-						),
-					);
-					return;
-				}
-
-				if (workLocks.has(leaver.id)) {
+				if (workLocks.has(node.id)) {
 					await interaction.followUp(
 						errorMessage(
 							"Leaving in progress",
@@ -51,18 +39,26 @@ export default class MembersModal extends ModalHandler {
 					return;
 				}
 
+				const master = await networks.getMasterNode(node.networkid);
+				if (!master) {
+					await interaction.followUp(
+						errorMessage(
+							"This Node is not part of a Network!",
+							"Please make sure that you are in a Network and that the Network exists!",
+						),
+					);
+					return;
+				}
+
 				try {
-					workLocks.add(leaver.id);
+					workLocks.add(node.id);
 
-					await nodes.deleteNode(leaver.guildid);
+					await nodes.deleteNode(node.guildid);
 
-					internalBus.emit("network_leave", node.guildid, leaver.guildid);
+					internalBus.emit("network_leave", master.guildid, node.guildid);
 
 					await interaction.followUp(
-						successMessage(
-							"Deleted",
-							"The Node has been kicked from the Network.",
-						),
+						successMessage("Goodbye!", "The Node has been left the Network."),
 					);
 				} catch (err) {
 					logger.error(err);
