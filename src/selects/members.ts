@@ -1,14 +1,8 @@
 import type { StringSelectMenuInteraction } from "discord.js";
-import { joinrequests, networks, nodes } from "../db/index.js";
-import {
-	joinRequestMessage,
-	masterMessage,
-	memberDetail,
-} from "../messages/setup.js";
+import { networks, nodes } from "../db/index.js";
+import { memberDetail, memberMenu } from "../messages/members.js";
 import { SelectHandler } from "../structures/selecthandler.js";
-import { RequestStatus } from "../types/network.js";
 import { NodeType } from "../types/node.js";
-import { errorMessage } from "../utils/messages.js";
 import {
 	ensureGuild,
 	ensureNodeType,
@@ -26,42 +20,14 @@ export default class MembersSelect extends SelectHandler {
 		const action = interaction.values[0];
 		if (!action) return;
 
-		switch (action) {
-			case "back": {
-				const network = await networks.getNetwork(node.networkid);
-				if (!network) {
-					await interaction.reply(
-						errorMessage(
-							"Not in a Network!",
-							"This server isn't part of a network",
-						),
-					);
-					return;
-				}
-				await interaction.reply(masterMessage(network));
-				return;
-			}
-			case "joinrequests": {
-				const network = await networks.getNetwork(node.networkid);
-				if (!network) {
-					await interaction.reply(
-						errorMessage(
-							"This Network does not exist!",
-							"Please make sure that you are in a Network and that the Network exists!",
-						),
-					);
-					return;
-				}
-				const joinRequests = await joinrequests.getJoinRequests(
-					network.id,
-					RequestStatus.PENDING,
-				);
+		if (action.split(":")[0] === "page") {
+			const page = interaction.customId.split(":")[1];
+			const networkNodes = await networks.getNodes(node.network.id);
 
-				await interaction.reply(
-					await joinRequestMessage(network, joinRequests, 0),
-				);
-				return;
-			}
+			await interaction.reply(
+				await memberMenu(node.network, networkNodes, parseInt(page || "1", 10)),
+			);
+			return;
 		}
 		if (action.split(":")[0] === "member") {
 			const guildId = action.split(":")[1];

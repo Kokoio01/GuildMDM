@@ -10,11 +10,12 @@ import {
 	TextInputBuilder,
 	TextInputStyle,
 } from "discord.js";
-import { networks, nodes } from "../db/index.js";
-import { memberMessage } from "../messages/setup.js";
+import { joinrequests, networks } from "../db/index.js";
+import { joinRequestMenu } from "../messages/joinrequests.js";
+import { memberMenu } from "../messages/members.js";
 import { SelectHandler } from "../structures/selecthandler.js";
+import { RequestStatus } from "../types/network.js";
 import { NodeType } from "../types/node.js";
-import { errorMessage } from "../utils/messages.js";
 import {
 	ensureGuild,
 	ensureNodeType,
@@ -34,30 +35,22 @@ export default class masterSelector extends SelectHandler {
 
 		switch (action) {
 			case "members": {
-				const node = await nodes.getNode(interaction.guild.id);
-				if (!node || node.type !== NodeType.master) {
-					await interaction.reply(
-						errorMessage(
-							"This server is not a network master!",
-							"This node is either not in a network or is not a network master!",
-						),
-					);
-					return;
-				}
+				const networkNodes = await networks.getNodes(node.network.id);
 
-				const network = await networks.getNetwork(node.networkid);
-				if (!network) {
-					await interaction.reply(
-						errorMessage(
-							"This Network does not exist!",
-							"Please make sure that you are in a Network and that the Network exists!",
-						),
-					);
-					return;
-				}
-				const networkNodes = await networks.getNodes(network.id);
+				await interaction.reply(
+					await memberMenu(node.network, networkNodes, 0),
+				);
+				return;
+			}
+			case "joinrequests": {
+				const joinRequests = await joinrequests.getJoinRequests(
+					node.network.id,
+					RequestStatus.PENDING,
+				);
 
-				await interaction.reply(await memberMessage(network, networkNodes, 0));
+				await interaction.reply(
+					await joinRequestMenu(node.network, joinRequests, 0),
+				);
 				return;
 			}
 			case "rename": {
@@ -90,11 +83,11 @@ export default class masterSelector extends SelectHandler {
 
 				const row = new ActionRowBuilder<ButtonBuilder>().addComponents([
 					new ButtonBuilder()
-						.setCustomId("setup:master:delete")
+						.setCustomId("master:delete")
 						.setLabel("Confirm")
 						.setStyle(ButtonStyle.Danger),
 					new ButtonBuilder()
-						.setCustomId("setup:master")
+						.setCustomId("master")
 						.setLabel("Cancel")
 						.setStyle(ButtonStyle.Secondary),
 				]);

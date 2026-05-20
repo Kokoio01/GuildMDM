@@ -1,13 +1,10 @@
 import type { ModalSubmitInteraction } from "discord.js";
 import { joinrequests, networks, nodes } from "../db/index.js";
-import { masterMessage } from "../messages/setup.js";
+import { masterMenu } from "../messages/master.js";
 import { ModalHandler } from "../structures/modalhandler.js";
 import type { Network } from "../types/network.js";
 import { errorMessage, successMessage } from "../utils/messages.js";
 import { ensureGuild, validateAdmin } from "../utils/permissions.js";
-
-// A bit janky, but it works
-const _workLocks = new Set<number>();
 
 export default class SetupModal extends ModalHandler {
 	public name: string = "setup";
@@ -45,7 +42,7 @@ export default class SetupModal extends ModalHandler {
 						interaction.guild.id,
 					);
 
-					await interaction.reply(masterMessage(network || ({} as Network)));
+					await interaction.reply(masterMenu(network || ({} as Network)));
 				}
 				return;
 			}
@@ -64,7 +61,7 @@ export default class SetupModal extends ModalHandler {
 					} else {
 						const result = await joinrequests.createJoinRequest(
 							interaction.guild.id,
-							adminNode.networkid,
+							adminNode.network.id,
 							message,
 						);
 

@@ -25,17 +25,6 @@ export default class MasterModal extends ModalHandler {
 		const action = interaction.customId.split(":")[1];
 		if (!action) return;
 
-		const network = await networks.getNetwork(node.networkid);
-		if (!network) {
-			await interaction.followUp(
-				errorMessage(
-					"This Network does not exist!",
-					"Please make sure that you are in a Network and that the Network exists!",
-				),
-			);
-			return;
-		}
-
 		switch (action) {
 			case "rename": {
 				const name = interaction.fields.getTextInputValue("name");
@@ -50,9 +39,9 @@ export default class MasterModal extends ModalHandler {
 				}
 
 				try {
-					workLocks.add(network.id);
+					workLocks.add(node.network.id);
 
-					await networks.updateNetwork(network.id, name);
+					await networks.updateNetwork(node.network.id, name);
 
 					await interaction.followUp(
 						successMessage(
@@ -69,20 +58,20 @@ export default class MasterModal extends ModalHandler {
 						),
 					);
 				} finally {
-					workLocks.delete(network.id);
+					workLocks.delete(node.network.id);
 				}
 				return;
 			}
 			case "delete": {
 				try {
-					workLocks.add(network.id);
+					workLocks.add(node.network.id);
 
-					const networkNodes = await networks.getNodes(network.id);
+					const networkNodes = await networks.getNodes(node.network.id);
 
-					await networks.deleteNetwork(network.id);
+					await networks.deleteNetwork(node.network.id);
 
 					networkNodes?.forEach((node) => {
-						internalBus.emit("network_disband", node.guildid, network);
+						internalBus.emit("network_disband", node.guildid, node.network);
 					});
 
 					await interaction.followUp(
@@ -97,7 +86,7 @@ export default class MasterModal extends ModalHandler {
 						),
 					);
 				} finally {
-					workLocks.delete(network.id);
+					workLocks.delete(node.network.id);
 				}
 				return;
 			}

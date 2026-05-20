@@ -31,7 +31,7 @@ export default class MembersModal extends ModalHandler {
 				await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 				const leaver = await nodes.getNode(guildId);
-				if (!leaver || leaver.networkid !== node.networkid) {
+				if (!leaver || leaver.network.id !== node.network.id) {
 					await interaction.followUp(
 						errorMessage(
 							"Guild not in Network",

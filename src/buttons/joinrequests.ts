@@ -1,6 +1,6 @@
 import type { ButtonInteraction } from "discord.js";
 import { joinrequests, networks } from "../db/index.js";
-import { joinRequestMessage } from "../messages/setup.js";
+import { joinRequestMenu } from "../messages/joinrequests.js";
 import { ButtonHandler } from "../structures/buttonhandler.js";
 import { RequestStatus } from "../types/network.js";
 import { NodeType } from "../types/node.js";
@@ -24,54 +24,6 @@ export default class JoinRequestButton extends ButtonHandler {
 		if (!action) return;
 
 		switch (action) {
-			case "page": {
-				const page = interaction.customId.split(":")[2];
-
-				const network = await networks.getNetwork(node.networkid);
-				if (!network) {
-					await interaction.reply(
-						errorMessage(
-							"This Network does not exist!",
-							"Please make sure that you are in a Network and that the Network exists!",
-						),
-					);
-					return;
-				}
-				const joinRequests = await joinrequests.getJoinRequests(
-					network.id,
-					RequestStatus.PENDING,
-				);
-
-				await interaction.reply(
-					await joinRequestMessage(
-						network,
-						joinRequests,
-						parseInt(page || "1", 10),
-					),
-				);
-				return;
-			}
-			case "overview": {
-				const network = await networks.getNetwork(node.networkid);
-				if (!network) {
-					await interaction.reply(
-						errorMessage(
-							"This Network does not exist!",
-							"Please make sure that you are in a Network and that the Network exists!",
-						),
-					);
-					return;
-				}
-				const joinRequests = await joinrequests.getJoinRequests(
-					network.id,
-					RequestStatus.PENDING,
-				);
-
-				await interaction.reply(
-					await joinRequestMessage(network, joinRequests, 0),
-				);
-				return;
-			}
 			case "accept": {
 				const requestId = interaction.customId.split(":")[2];
 				if (!requestId) return;
@@ -127,6 +79,17 @@ export default class JoinRequestButton extends ButtonHandler {
 						"Join Request declined",
 						"The Join Request has been declined!",
 					),
+				);
+				return;
+			}
+			default: {
+				const joinRequests = await joinrequests.getJoinRequests(
+					node.network.id,
+					RequestStatus.PENDING,
+				);
+
+				await interaction.reply(
+					await joinRequestMenu(node.network, joinRequests, 0),
 				);
 				return;
 			}

@@ -39,7 +39,7 @@ export default class NodeModal extends ModalHandler {
 					return;
 				}
 
-				const master = await networks.getMasterNode(node.networkid);
+				const master = await networks.getMasterNode(node.network.id);
 				if (!master) {
 					await interaction.followUp(
 						errorMessage(
