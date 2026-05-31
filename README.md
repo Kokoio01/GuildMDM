@@ -44,7 +44,7 @@ Start the server
 ## Roadmap
 
 - Build up basic Framework - Done
-- Network Managment
+- Network Managment - Done
 - Policy System
 - Implement first policies
 
