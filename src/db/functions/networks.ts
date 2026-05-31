@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { AppError } from "../../structures/apperror.js";
 import type { Network } from "../../types/network.js";
 import type { Node } from "../../types/node.js";
 import { logger } from "../../utils/logger.js";
@@ -64,38 +65,20 @@ export class network {
 		} catch (err) {
 			await conn.query("ROLLBACK");
 			logger.error(err);
-			return null;
+			throw new AppError("DB_ERROR");
 		} finally {
 			conn.release();
 		}
 	}
 
-	/**
-	 * Warning: throws error
-	 */
 	public async updateNetwork(networkId: number, name: string): Promise<void> {
-		const conn = await pool.connect();
-		try {
-			await conn.query("UPDATE networks SET name = $1 WHERE id = $2", [
-				name,
-				networkId,
-			]);
-		} finally {
-			conn.release();
-		}
+		await safeQuery("UPDATE networks SET name = $1 WHERE id = $2", [
+			name,
+			networkId,
+		]);
 	}
 
-	/**
-	 * Warning: throws error
-	 */
 	public async deleteNetwork(networkId: number): Promise<void> {
-		const conn = await pool.connect();
-		try {
-			await conn.query("DELETE FROM networks WHERE id = $1", [networkId]);
-		} catch (err) {
-			logger.error(err);
-		} finally {
-			conn.release();
-		}
+		await safeQuery("DELETE FROM networks WHERE id = $1", [networkId]);
 	}
 }

@@ -1,5 +1,4 @@
 import type { Node } from "../../types/node.js";
-import { pool } from "../index.js";
 import { safeQuery } from "../utils.js";
 
 export class node {
@@ -32,12 +31,6 @@ export class node {
 	}
 
 	public async deleteNode(guildId: string): Promise<void> {
-		const conn = await pool.connect();
-		try {
-			// throw error to cancel leaving events
-			await conn.query("DELETE FROM nodes WHERE guildid = $1", [guildId]);
-		} finally {
-			conn.release();
-		}
+		await safeQuery("DELETE FROM nodes WHERE guildId = $1;", [guildId]);
 	}
 }

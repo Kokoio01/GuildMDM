@@ -1,3 +1,4 @@
+import { AppError } from "../../structures/apperror.js";
 import { type JoinRequest, RequestStatus } from "../../types/network.js";
 import { NodeType } from "../../types/node.js";
 import { logger } from "../../utils/logger.js";
@@ -29,13 +30,11 @@ export class joinrequest {
 		guildId: string,
 		networkId: number,
 		message: string,
-	): Promise<JoinRequest | null> {
-		const result = await safeQuery(
-			"INSERT INTO joinrequests (guildid, networkid, message, status) VALUES ($1, $2, $3, 0) RETURNING *",
+	): Promise<void> {
+		await safeQuery(
+			"INSERT INTO joinrequests (guildid, networkid, message, status) VALUES ($1, $2, $3, 0)",
 			[guildId, networkId, message],
 		);
-		if (!result) return null;
-		return result.rows[0] as JoinRequest;
 	}
 
 	public async acceptJoinRequest(joinRequest: JoinRequest): Promise<void> {
@@ -58,6 +57,7 @@ export class joinrequest {
 		} catch (err) {
 			await conn.query("ROLLBACK;");
 			logger.error(err);
+			throw new AppError("DB_ERROR");
 		} finally {
 			conn.release();
 		}

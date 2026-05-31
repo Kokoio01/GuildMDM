@@ -40,7 +40,6 @@ export default class NodeModal extends ModalHandler {
 					await interaction.followUp(
 						successMessage("Goodbye!", "The Node has been left the Network."),
 					);
-					// TODO: DB ERROR
 				} finally {
 					lockManager.release(LockType.Node, node.id);
 				}

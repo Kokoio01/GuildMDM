@@ -1,3 +1,4 @@
+import { AppError } from "../structures/apperror.js";
 import { logger } from "../utils/logger.js";
 import { pool } from "./index.js";
 
@@ -8,6 +9,7 @@ export async function safeQuery(query: string, params: any[]) {
 		return await conn.query(query, params);
 	} catch (err) {
 		logger.error(err);
+		throw new AppError("DB_ERROR");
 	} finally {
 		conn.release();
 	}

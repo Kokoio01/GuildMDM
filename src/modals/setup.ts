@@ -45,43 +45,36 @@ export default class SetupModal extends ModalHandler {
 					if (!adminNode) {
 						throw new AppError("NONE_NETWORK");
 					} else {
-						const result = await joinrequests.createJoinRequest(
+						await joinrequests.createJoinRequest(
 							interaction.guild.id,
 							adminNode.network.id,
 							message,
 						);
 
-						if (!result) {
-							// TODO: DB ERROR
-						} else {
-							await interaction.reply(
-								successMessage(
-									"Application submitted",
-									"Your Application has been submitted to the Network Owner. They will respond to you as soon as possible.",
-								),
-							);
-						}
+						await interaction.reply(
+							successMessage(
+								"Application submitted",
+								"Your Application has been submitted to the Network Owner. They will respond to you as soon as possible.",
+							),
+						);
 					}
 				} else {
 					const network = await networks.getNetworkByJoinKey(joinKey);
 					if (!network) {
 						throw new AppError("NOT_FOUND");
 					} else {
-						const result = await joinrequests.createJoinRequest(
+						await joinrequests.createJoinRequest(
 							interaction.guild.id,
 							network.id,
 							message,
 						);
-						if (!result) {
-							// TODO: DB ERROR
-						} else {
-							await interaction.reply(
-								successMessage(
-									"Application submitted",
-									"Your Application has been submitted to the Network Owner. They will respond to you as soon as possible.",
-								),
-							);
-						}
+
+						await interaction.reply(
+							successMessage(
+								"Application submitted",
+								"Your Application has been submitted to the Network Owner. They will respond to you as soon as possible.",
+							),
+						);
 					}
 				}
 				return;

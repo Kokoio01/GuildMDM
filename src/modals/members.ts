@@ -34,7 +34,7 @@ export default class MembersModal extends ModalHandler {
 				}
 
 				try {
-					lockManager.lock(LockType.Node, node.id);
+					lockManager.lock(LockType.Node, leaver.id);
 
 					await nodes.deleteNode(leaver.guildid);
 
@@ -46,9 +46,8 @@ export default class MembersModal extends ModalHandler {
 							"The Node has been kicked from the Network.",
 						),
 					);
-					// TODO: DB ERROR
 				} finally {
-					lockManager.release(LockType.Node, node.id);
+					lockManager.release(LockType.Node, leaver.id);
 				}
 			}
 		}
