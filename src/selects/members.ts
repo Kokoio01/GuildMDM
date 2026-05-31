@@ -22,7 +22,7 @@ export default class MembersSelect extends SelectHandler {
 		if (!action) throw new AppError("UNKNOWN_SELECT_MENU");
 
 		if (action.split(":")[0] === "page") {
-			const page = interaction.customId.split(":")[1];
+			const page = action.split(":")[1];
 			const networkNodes = await networks.getNodes(node.network.id);
 
 			await interaction.reply(

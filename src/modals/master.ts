@@ -58,8 +58,8 @@ export default class MasterModal extends ModalHandler {
 
 					await networks.deleteNetwork(node.network.id);
 
-					networkNodes?.forEach((node) => {
-						internalBus.emit("network_disband", node.guildid, node.network);
+					networkNodes?.forEach((nNode) => {
+						internalBus.emit("network_disband", nNode.guildid, node.network);
 					});
 
 					await interaction.followUp(

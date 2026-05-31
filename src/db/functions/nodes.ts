@@ -16,8 +16,8 @@ export class node {
 				"WHERE n.guildId = $1;",
 			[guildId],
 		);
-		if (!result) return undefined;
 		const row = result.rows[0];
+		if (!row) return undefined;
 		return {
 			id: row.id,
 			type: row.type,

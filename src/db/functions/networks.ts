@@ -59,6 +59,10 @@ export class network {
 				"INSERT INTO nodes (guildid, networkId, type) VALUES ($1, $2, 1);",
 				[guildId, result.rows[0].id],
 			);
+			await conn.query(
+				"UPDATE joinrequests SET status = 3 WHERE guildid = $1;",
+				[guildId],
+			);
 			await conn.query("COMMIT");
 
 			return result.rows[0] as Network;

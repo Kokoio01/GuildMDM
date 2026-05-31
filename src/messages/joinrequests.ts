@@ -32,21 +32,21 @@ export async function joinRequestMenu(
 	);
 	if (!guild) guild = [];
 	const items = [
-		...(current - 1 > 1
+		...(current - 1 >= 1
 			? [
 					new StringSelectMenuOptionBuilder()
 						.setEmoji("◀️")
 						.setLabel("Go Back")
-						.setValue(`joinrequests:page:${current - 1}`),
+						.setValue(`page:${current - 1}`),
 				]
 			: []),
-		...selected.map((node) =>
+		...selected.map((jr) =>
 			new StringSelectMenuOptionBuilder()
 				.setLabel(
-					guild.find((guild) => guild.id === node.guildid)?.name || "Unknown",
+					guild.find((guild) => guild.id === jr.guildid)?.name || "Unknown",
 				)
-				.setDescription(node.guildid)
-				.setValue(`joinrequests:${node.guildid}`),
+				.setDescription(jr.guildid)
+				.setValue(`joinrequests:${jr.id}`),
 		),
 		...(selected.length < 1
 			? [
@@ -56,12 +56,12 @@ export async function joinRequestMenu(
 						.setValue("disabled"),
 				]
 			: []),
-		...(current + 1 < pages
+		...(current + 1 <= pages
 			? [
 					new StringSelectMenuOptionBuilder()
 						.setEmoji("▶️")
 						.setLabel("Go forward")
-						.setValue(`joinrequests:page:${current + 1}`),
+						.setValue(`page:${current + 1}`),
 				]
 			: []),
 	];

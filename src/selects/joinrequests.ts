@@ -26,7 +26,7 @@ export default class JoinRequestSelect extends SelectHandler {
 		if (!action) throw new AppError("UNKNOWN_SELECT_MENU");
 
 		if (action.split(":")[0] === "page") {
-			const page = interaction.customId.split(":")[2];
+			const page = action.split(":")[1];
 
 			const joinRequests = await joinrequests.getJoinRequests(
 				node.network.id,
@@ -42,7 +42,7 @@ export default class JoinRequestSelect extends SelectHandler {
 			);
 			return;
 		}
-		if (action.split(":")[0] === "jr") {
+		if (action.split(":")[0] === "joinrequests") {
 			const requestId = action.split(":")[1];
 			if (!requestId) throw new AppError("NOT_FOUND");
 

@@ -16,7 +16,7 @@ export default class Disband extends InternalEvent<"network_disband"> {
 		const embed = new EmbedBuilder()
 			.setTitle("Network Deleted")
 			.setDescription(
-				`Network ${network.name} has been deleted by the network owner.` +
+				`Network ${network.name || "Unknown"} has been deleted by the network owner.` +
 					"This server has been automatically removed from the network.",
 			);
 

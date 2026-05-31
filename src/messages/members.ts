@@ -30,12 +30,12 @@ export async function memberMenu(
 	let guild = await guilds.getGuilds(selected.map((node) => node.guildid));
 	if (!guild) guild = [];
 	const items = [
-		...(current - 1 > 1
+		...(current - 1 >= 1
 			? [
 					new StringSelectMenuOptionBuilder()
 						.setEmoji("◀️")
 						.setLabel("Go Back")
-						.setValue(`members:page:${current - 1}`),
+						.setValue(`page:${current - 1}`),
 				]
 			: []),
 		...selected.map((node) =>
@@ -46,12 +46,12 @@ export async function memberMenu(
 				.setDescription(node.guildid)
 				.setValue(`member:${node.guildid}`),
 		),
-		...(current + 1 < pages
+		...(current + 1 <= pages
 			? [
 					new StringSelectMenuOptionBuilder()
 						.setEmoji("▶️")
 						.setLabel("Go forward")
-						.setValue(`members:page:${current + 1}`),
+						.setValue(`page:${current + 1}`),
 				]
 			: []),
 	];

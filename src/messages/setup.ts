@@ -5,7 +5,6 @@ import {
 	ContainerBuilder,
 	type InteractionReplyOptions,
 	MessageFlags,
-	SectionBuilder,
 	SeparatorBuilder,
 	StringSelectMenuBuilder,
 	TextDisplayBuilder,
@@ -13,13 +12,7 @@ import {
 
 export function setupMenu(): InteractionReplyOptions {
 	const container = new ContainerBuilder()
-		.addSectionComponents(
-			new SectionBuilder().addTextDisplayComponents(
-				new TextDisplayBuilder({
-					content: `**Setup**`,
-				}),
-			),
-		)
+		.addTextDisplayComponents(new TextDisplayBuilder({ content: `**Setup**` }))
 
 		.addTextDisplayComponents(
 			new TextDisplayBuilder({
@@ -52,12 +45,10 @@ export function setupMenu(): InteractionReplyOptions {
 
 export function netSetup(): InteractionReplyOptions {
 	const container = new ContainerBuilder()
-		.addSectionComponents(
-			new SectionBuilder().addTextDisplayComponents(
-				new TextDisplayBuilder({
-					content: `**Setup/Network**`,
-				}),
-			),
+		.addTextDisplayComponents(
+			new TextDisplayBuilder({
+				content: `**Setup/Network**`,
+			}),
 		)
 
 		.addTextDisplayComponents(
@@ -89,12 +80,10 @@ export function netSetup(): InteractionReplyOptions {
 
 export function nodeSetup(): InteractionReplyOptions {
 	const container = new ContainerBuilder()
-		.addSectionComponents(
-			new SectionBuilder().addTextDisplayComponents(
-				new TextDisplayBuilder({
-					content: `**Setup/Node**`,
-				}),
-			),
+		.addTextDisplayComponents(
+			new TextDisplayBuilder({
+				content: `**Setup/Node**`,
+			}),
 		)
 
 		.addTextDisplayComponents(
