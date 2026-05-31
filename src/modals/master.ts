@@ -1,18 +1,16 @@
-import type { ModalSubmitInteraction } from "discord.js";
+import { MessageFlags, type ModalSubmitInteraction } from "discord.js";
 import { networks } from "../db/index.js";
+import { AppError } from "../structures/apperror.js";
 import { ModalHandler } from "../structures/modalhandler.js";
 import { NodeType } from "../types/node.js";
 import { internalBus } from "../utils/eventBus.js";
-import { logger } from "../utils/logger.js";
-import { errorMessage, successMessage } from "../utils/messages.js";
+import { LockType, lockManager } from "../utils/lockManager.js";
+import { successMessage } from "../utils/messages.js";
 import {
 	ensureGuild,
 	ensureNodeType,
 	validateAdmin,
 } from "../utils/permissions.js";
-
-// TODO: Move this to a proper Spot, this is not synced between setup and members and should really be in the DB
-const workLocks = new Set<number>();
 
 export default class MasterModal extends ModalHandler {
 	name = "master";
@@ -23,23 +21,18 @@ export default class MasterModal extends ModalHandler {
 		const node = await ensureNodeType(interaction, NodeType.master);
 		if (!admin || !node) return;
 		const action = interaction.customId.split(":")[1];
-		if (!action) return;
+		if (!action) throw new AppError("UNKNOWN_MODAL");
 
 		switch (action) {
 			case "rename": {
+				await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 				const name = interaction.fields.getTextInputValue("name");
 				if (name.length > 200 || name.length < 2) {
-					await interaction.followUp(
-						errorMessage(
-							"Invalid Name",
-							"The name must be between 2 and 200 characters long.",
-						),
-					);
-					return;
+					throw new AppError("INVALID_NET_NAME");
 				}
 
 				try {
-					workLocks.add(node.network.id);
+					lockManager.lock(LockType.Network, node.network.id);
 
 					await networks.updateNetwork(node.network.id, name);
 
@@ -49,22 +42,15 @@ export default class MasterModal extends ModalHandler {
 							`The Network has been renamed to **${name}**`,
 						),
 					);
-				} catch (err) {
-					logger.error(err);
-					await interaction.followUp(
-						errorMessage(
-							"Error",
-							"An error occurred while renaming the Network. Please try again later.",
-						),
-					);
 				} finally {
-					workLocks.delete(node.network.id);
+					lockManager.release(LockType.Network, node.network.id);
 				}
 				return;
 			}
 			case "delete": {
+				await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 				try {
-					workLocks.add(node.network.id);
+					lockManager.lock(LockType.Network, node.network.id);
 
 					const networkNodes = await networks.getNodes(node.network.id);
 
@@ -77,16 +63,8 @@ export default class MasterModal extends ModalHandler {
 					await interaction.followUp(
 						successMessage("Deleted", "The Network has been deleted."),
 					);
-				} catch (err) {
-					logger.error(err);
-					await interaction.followUp(
-						errorMessage(
-							"Error",
-							"An error occurred while deleting the Network. Please try again later.",
-						),
-					);
 				} finally {
-					workLocks.delete(node.network.id);
+					lockManager.release(LockType.Network, node.network.id);
 				}
 				return;
 			}

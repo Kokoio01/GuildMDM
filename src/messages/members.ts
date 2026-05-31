@@ -99,7 +99,7 @@ export async function memberMenu(
 
 	return {
 		components: [container],
-		flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral]
+		flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
 	};
 }
 

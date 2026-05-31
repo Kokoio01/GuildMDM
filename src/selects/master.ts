@@ -13,6 +13,7 @@ import {
 import { joinrequests, networks } from "../db/index.js";
 import { joinRequestMenu } from "../messages/joinrequests.js";
 import { memberMenu } from "../messages/members.js";
+import { AppError } from "../structures/apperror.js";
 import { SelectHandler } from "../structures/selecthandler.js";
 import { RequestStatus } from "../types/network.js";
 import { NodeType } from "../types/node.js";
@@ -31,7 +32,7 @@ export default class masterSelector extends SelectHandler {
 		const node = await ensureNodeType(interaction, NodeType.master);
 		if (!admin || !node) return;
 		const action = interaction.values[0];
-		if (!action) return;
+		if (!action) throw new AppError("UNKNOWN_SELECT_MENU");
 
 		switch (action) {
 			case "members": {

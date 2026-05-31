@@ -1,18 +1,16 @@
 import type { ModalSubmitInteraction } from "discord.js";
 import { networks, nodes } from "../db/index.js";
+import { AppError } from "../structures/apperror.js";
 import { ModalHandler } from "../structures/modalhandler.js";
 import { NodeType } from "../types/node.js";
 import { internalBus } from "../utils/eventBus.js";
-import { logger } from "../utils/logger.js";
-import { errorMessage, successMessage } from "../utils/messages.js";
+import { LockType, lockManager } from "../utils/lockManager.js";
+import { successMessage } from "../utils/messages.js";
 import {
 	ensureGuild,
 	ensureNodeType,
 	validateAdmin,
 } from "../utils/permissions.js";
-
-// TODO: Move this to a proper Spot, this is not synced between setup and members and should really be in the DB
-const workLocks = new Set<number>();
 
 export default class NodeModal extends ModalHandler {
 	name = "node";
@@ -23,35 +21,17 @@ export default class NodeModal extends ModalHandler {
 		const node = await ensureNodeType(interaction, NodeType.normal);
 		if (!admin || !node) return;
 		const action = interaction.customId.split(":")[1];
-		if (!action) return;
+		if (!action) throw new AppError("UNKNOWN_MODAL");
 
 		switch (action) {
 			case "leave": {
 				await interaction.deferReply();
 
-				if (workLocks.has(node.id)) {
-					await interaction.followUp(
-						errorMessage(
-							"Leaving in progress",
-							"This node is already leaving the network.",
-						),
-					);
-					return;
-				}
-
 				const master = await networks.getMasterNode(node.network.id);
-				if (!master) {
-					await interaction.followUp(
-						errorMessage(
-							"This Node is not part of a Network!",
-							"Please make sure that you are in a Network and that the Network exists!",
-						),
-					);
-					return;
-				}
+				if (!master) throw new AppError("NO_NETWORK");
 
 				try {
-					workLocks.add(node.id);
+					lockManager.lock(LockType.Node, node.id);
 
 					await nodes.deleteNode(node.guildid);
 
@@ -60,16 +40,9 @@ export default class NodeModal extends ModalHandler {
 					await interaction.followUp(
 						successMessage("Goodbye!", "The Node has been left the Network."),
 					);
-				} catch (err) {
-					logger.error(err);
-					await interaction.followUp(
-						errorMessage(
-							"Error",
-							"An error occurred while deleting the Network. Please try again later.",
-						),
-					);
+					// TODO: DB ERROR
 				} finally {
-					workLocks.delete(node.id);
+					lockManager.release(LockType.Node, node.id);
 				}
 			}
 		}

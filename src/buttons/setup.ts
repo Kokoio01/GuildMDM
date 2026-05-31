@@ -7,8 +7,8 @@ import {
 	TextInputStyle,
 } from "discord.js";
 import { networks, nodes } from "../db/index.js";
+import { AppError } from "../structures/apperror.js";
 import { ButtonHandler } from "../structures/buttonhandler.js";
-import { errorMessage } from "../utils/messages.js";
 import { ensureGuild, validateAdmin } from "../utils/permissions.js";
 
 export default class SetupButton extends ButtonHandler {
@@ -18,18 +18,13 @@ export default class SetupButton extends ButtonHandler {
 		if (!ensureGuild(interaction)) return;
 		if (!(await validateAdmin(interaction))) return;
 		const action = interaction.customId.split(":")[1];
+		if (!action) throw new AppError("UNKNOWN_BUTTON");
 		const adminGuild = process.env.ADMIN_GUILD as string;
 
 		switch (action) {
 			case "netsetup": {
 				if (adminGuild && adminGuild !== interaction.guild?.id) {
-					await interaction.reply(
-						errorMessage(
-							"Not allowed!",
-							"This Instance has restricted Network creation",
-						),
-					);
-					return;
+					throw new AppError("CREATION_RESTRICTED");
 				}
 
 				const modal = new ModalBuilder()
@@ -60,13 +55,7 @@ export default class SetupButton extends ButtonHandler {
 				if (adminGuild) {
 					const adminNode = await nodes.getNode(adminGuild);
 					if (!adminNode) {
-						await interaction.reply(
-							errorMessage(
-								"Not available!",
-								"This Instance has no current Network to join!",
-							),
-						);
-						return;
+						throw new AppError("NONE_NETWORK");
 					}
 					const network = await networks.getNetwork(adminNode?.id);
 

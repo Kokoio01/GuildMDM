@@ -3,7 +3,7 @@ import { pool } from "../index.js";
 import { safeQuery } from "../utils.js";
 
 export class node {
-	public async getNode(guildId: string): Promise<Node | null> {
+	public async getNode(guildId: string): Promise<Node | undefined> {
 		const result = await safeQuery(
 			"SELECT \n" +
 				"    n.id,\n" +
@@ -17,7 +17,7 @@ export class node {
 				"WHERE n.guildId = $1;",
 			[guildId],
 		);
-		if (!result) return null;
+		if (!result) return undefined;
 		const row = result.rows[0];
 		return {
 			id: row.id,

@@ -1,9 +1,10 @@
 import type { ModalSubmitInteraction } from "discord.js";
 import { joinrequests, networks, nodes } from "../db/index.js";
 import { masterMenu } from "../messages/master.js";
+import { AppError } from "../structures/apperror.js";
 import { ModalHandler } from "../structures/modalhandler.js";
 import type { Network } from "../types/network.js";
-import { errorMessage, successMessage } from "../utils/messages.js";
+import { successMessage } from "../utils/messages.js";
 import { ensureGuild, validateAdmin } from "../utils/permissions.js";
 
 export default class SetupModal extends ModalHandler {
@@ -13,29 +14,19 @@ export default class SetupModal extends ModalHandler {
 		if (!ensureGuild(interaction)) return;
 		if (!(await validateAdmin(interaction))) return;
 		const action = interaction.customId.split(":")[1];
+		if (!action) throw new AppError("UNKNOWN_MODAL");
 		const adminGuild = process.env.ADMIN_GUILD as string;
 
 		switch (action) {
 			case "netsetup": {
 				if (adminGuild && adminGuild !== interaction.guild?.id) {
-					await interaction.reply(
-						errorMessage(
-							"Not allowed!",
-							"This Instance has restricted Network creation",
-						),
-					);
-					return;
+					throw new AppError("CREATION_RESTRICTED");
 				}
 				const name = interaction.fields.getTextInputValue("name");
 				const node = await nodes.getNode(interaction.guild.id);
 
 				if (node) {
-					await interaction.reply(
-						errorMessage(
-							"Already in a Network!",
-							"This Server is already part of a Network! Please remove it from the Network first!",
-						),
-					);
+					throw new AppError("ALREADY_NETWORK");
 				} else {
 					const network = await networks.createNetwork(
 						name,
@@ -52,12 +43,7 @@ export default class SetupModal extends ModalHandler {
 				if (adminGuild) {
 					const adminNode = await nodes.getNode(adminGuild);
 					if (!adminNode) {
-						await interaction.reply(
-							errorMessage(
-								"Not available!",
-								"This Instance has no current Network to join!",
-							),
-						);
+						throw new AppError("NONE_NETWORK");
 					} else {
 						const result = await joinrequests.createJoinRequest(
 							interaction.guild.id,
@@ -66,12 +52,7 @@ export default class SetupModal extends ModalHandler {
 						);
 
 						if (!result) {
-							await interaction.reply(
-								errorMessage(
-									"Error",
-									"An error occurred while creating the join request. Please try again later.",
-								),
-							);
+							// TODO: DB ERROR
 						} else {
 							await interaction.reply(
 								successMessage(
@@ -84,12 +65,7 @@ export default class SetupModal extends ModalHandler {
 				} else {
 					const network = await networks.getNetworkByJoinKey(joinKey);
 					if (!network) {
-						await interaction.reply(
-							errorMessage(
-								"Invalid Join Key",
-								"There is no Network with this Join Key!",
-							),
-						);
+						throw new AppError("NOT_FOUND");
 					} else {
 						const result = await joinrequests.createJoinRequest(
 							interaction.guild.id,
@@ -97,12 +73,7 @@ export default class SetupModal extends ModalHandler {
 							message,
 						);
 						if (!result) {
-							await interaction.reply(
-								errorMessage(
-									"Error",
-									"An error occurred while creating the join request. Please try again later.",
-								),
-							);
+							// TODO: DB ERROR
 						} else {
 							await interaction.reply(
 								successMessage(

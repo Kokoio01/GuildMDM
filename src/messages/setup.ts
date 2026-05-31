@@ -122,6 +122,6 @@ export function nodeSetup(): InteractionReplyOptions {
 
 	return {
 		components: [container],
-		flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral]
+		flags: [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral],
 	};
 }

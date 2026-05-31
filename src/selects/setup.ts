@@ -1,5 +1,6 @@
 import type { AnySelectMenuInteraction } from "discord.js";
 import { netSetup, nodeSetup } from "../messages/setup.js";
+import { AppError } from "../structures/apperror.js";
 import { SelectHandler } from "../structures/selecthandler.js";
 import { ensureGuild, validateAdmin } from "../utils/permissions.js";
 
@@ -10,6 +11,7 @@ export default class setupSelect extends SelectHandler {
 		if (!ensureGuild(interaction)) return;
 		if (!(await validateAdmin(interaction))) return;
 		const action = interaction.customId.split(":")[1];
+		if (!action) throw new AppError("UNKNOWN_SELECT_MENU");
 
 		switch (action) {
 			case "selector": {

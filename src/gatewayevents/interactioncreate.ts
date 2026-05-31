@@ -1,4 +1,7 @@
-import { type Interaction, MessageFlags } from "discord.js";
+import type { Interaction } from "discord.js";
+import { nodes } from "../db/index.js";
+import error from "../messages/feedback.js";
+import { AppError } from "../structures/apperror.js";
 import type { ButtonHandler } from "../structures/buttonhandler.js";
 import { GatewayEvent } from "../structures/gatewayevent.js";
 import type { ModalHandler } from "../structures/modalhandler.js";
@@ -9,59 +12,55 @@ export default class InteractionCreate extends GatewayEvent {
 	public name: string = "interactionCreate";
 
 	async execute(interaction: Interaction): Promise<void> {
-		if (interaction.isChatInputCommand()) {
-			const command = this.client.slashcommands.get(interaction.commandName);
-			if (!command) return;
-
+		if (!interaction.isAutocomplete()) {
 			try {
-				await command.execute(interaction);
-			} catch (error) {
-				logger.error(error);
+				if (interaction.isChatInputCommand()) {
+					const command = this.client.slashcommands.get(
+						interaction.commandName,
+					);
+					if (!command) throw new AppError("UNKNOWN_CMD");
 
-				await interaction.reply({
-					content: "An Error accrued while executing this command",
-					flags: MessageFlags.Ephemeral,
-				});
-			}
-		}
-		if (interaction.isMessageComponent()) {
-			const componentname =
-				interaction.customId.split(":")[0] || "ERROR_BUTTON_NOT_FOUND";
-			try {
-				if (interaction.isButton()) {
-					const component: ButtonHandler | undefined =
-						this.client.buttons.get(componentname);
-					if (component) return await component.execute(interaction);
+					await command.execute(interaction);
 				}
-				if (interaction.isAnySelectMenu()) {
-					const component: SelectHandler | undefined =
-						this.client.selects.get(componentname);
-					if (component) return await component.execute(interaction);
+				if (interaction.isMessageComponent()) {
+					const componentname =
+						interaction.customId.split(":")[0] || "ERROR_BUTTON_NOT_FOUND";
+
+					if (interaction.isButton()) {
+						const component: ButtonHandler | undefined =
+							this.client.buttons.get(componentname);
+						if (!component) throw new AppError("UNKNOWN_BUTTON");
+						return await component.execute(interaction);
+					}
+					if (interaction.isAnySelectMenu()) {
+						const component: SelectHandler | undefined =
+							this.client.selects.get(componentname);
+						if (!component) throw new AppError("UNKNOWN_SELECT_MENU");
+						return await component.execute(interaction);
+					}
 				}
-			} catch (error) {
-				logger.error(error);
 
-				await interaction.reply({
-					content: "An Error accrued while executing this action",
-					flags: MessageFlags.Ephemeral,
-				});
-			}
-		}
+				if (interaction.isModalSubmit()) {
+					const componentname =
+						interaction.customId.split(":")[0] || "ERROR_MODAL_NOT_FOUND";
+					const component: ModalHandler | undefined =
+						this.client.modals.get(componentname);
+					if (!component) throw new AppError("UNKNOWN_MODAL");
+					return await component.execute(interaction);
+				}
+			} catch (err) {
+				const node = interaction.guild
+					? await nodes.getNode(interaction.guild.id)
+					: undefined;
 
-		if (interaction.isModalSubmit()) {
-			const componentname =
-				interaction.customId.split(":")[0] || "ERROR_MODAL_NOT_FOUND";
-			try {
-				const component: ModalHandler | undefined =
-					this.client.modals.get(componentname);
-				if (component) return await component.execute(interaction);
-			} catch (error) {
-				logger.error(error);
+				if (!(err instanceof AppError)) logger.error(err);
+				const appError =
+					err instanceof AppError ? err : new AppError("UNEXPECTED");
 
-				await interaction.reply({
-					content: "An Error accrued while executing this action",
-					flags: MessageFlags.Ephemeral,
-				});
+				const replyOptions = error(appError, node);
+				await (interaction.replied || interaction.deferred
+					? interaction.followUp(replyOptions)
+					: interaction.reply(replyOptions));
 			}
 		}
 	}

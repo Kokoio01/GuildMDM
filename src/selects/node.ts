@@ -3,6 +3,7 @@ import {
 	type StringSelectMenuInteraction,
 	TextDisplayBuilder,
 } from "discord.js";
+import { AppError } from "../structures/apperror.js";
 import { SelectHandler } from "../structures/selecthandler.js";
 import { NodeType } from "../types/node.js";
 import {
@@ -20,7 +21,7 @@ export default class nodeSelector extends SelectHandler {
 		const node = await ensureNodeType(interaction, NodeType.normal);
 		if (!admin || !node) return;
 		const action = interaction.values[0];
-		if (!action) return;
+		if (!action) throw new AppError("UNKNOWN_SELECT_MENU");
 
 		switch (action) {
 			case "leave": {

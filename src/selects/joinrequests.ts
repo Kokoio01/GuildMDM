@@ -4,6 +4,7 @@ import {
 	joinRequestDetail,
 	joinRequestMenu,
 } from "../messages/joinrequests.js";
+import { AppError } from "../structures/apperror.js";
 import { SelectHandler } from "../structures/selecthandler.js";
 import { RequestStatus } from "../types/network.js";
 import { NodeType } from "../types/node.js";
@@ -22,7 +23,7 @@ export default class JoinRequestSelect extends SelectHandler {
 		const node = await ensureNodeType(interaction, NodeType.master);
 		if (!admin || !node) return;
 		const action = interaction.values[0];
-		if (!action) return;
+		if (!action) throw new AppError("UNKNOWN_SELECT_MENU");
 
 		if (action.split(":")[0] === "page") {
 			const page = interaction.customId.split(":")[2];
@@ -43,10 +44,10 @@ export default class JoinRequestSelect extends SelectHandler {
 		}
 		if (action.split(":")[0] === "jr") {
 			const requestId = action.split(":")[1];
-			if (!requestId) return;
+			if (!requestId) throw new AppError("NOT_FOUND");
 
 			const request = await joinrequests.getJoinRequest(requestId);
-			if (!request) return;
+			if (!request) throw new AppError("NOT_FOUND");
 
 			await interaction.reply(await joinRequestDetail(request, node));
 			return;

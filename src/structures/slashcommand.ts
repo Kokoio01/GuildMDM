@@ -6,7 +6,7 @@ import type {
 export abstract class SlashCommand {
 	public readonly data: SlashCommandBuilder;
 
-	constructor(data: SlashCommandBuilder) {
+	protected constructor(data: SlashCommandBuilder) {
 		this.data = data;
 	}
 

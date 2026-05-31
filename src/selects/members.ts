@@ -1,6 +1,7 @@
 import type { StringSelectMenuInteraction } from "discord.js";
 import { networks, nodes } from "../db/index.js";
 import { memberDetail, memberMenu } from "../messages/members.js";
+import { AppError } from "../structures/apperror.js";
 import { SelectHandler } from "../structures/selecthandler.js";
 import { NodeType } from "../types/node.js";
 import {
@@ -18,7 +19,7 @@ export default class MembersSelect extends SelectHandler {
 		const node = await ensureNodeType(interaction, NodeType.master);
 		if (!admin || !node) return;
 		const action = interaction.values[0];
-		if (!action) return;
+		if (!action) throw new AppError("UNKNOWN_SELECT_MENU");
 
 		if (action.split(":")[0] === "page") {
 			const page = interaction.customId.split(":")[1];
@@ -31,10 +32,10 @@ export default class MembersSelect extends SelectHandler {
 		}
 		if (action.split(":")[0] === "member") {
 			const guildId = action.split(":")[1];
-			if (!guildId) return;
+			if (!guildId) throw new AppError("NOT_FOUND");
 
 			const node = await nodes.getNode(guildId);
-			if (!node) return;
+			if (!node) throw new AppError("NOT_FOUND");
 
 			await interaction.reply(await memberDetail(node));
 			return;
