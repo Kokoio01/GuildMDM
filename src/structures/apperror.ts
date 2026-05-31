@@ -21,6 +21,11 @@ const errorMessages = {
 		description: "This modal does not exist",
 	},
 
+	NOT_CONFIRMED: {
+		title: "Not Confirmed",
+		description: "You failed to confirm this action!",
+	},
+
 	NO_GUILD: {
 		title: "Guild required!",
 		description: "This Action can only be performed in a guild!",

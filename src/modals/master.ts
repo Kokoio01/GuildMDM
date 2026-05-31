@@ -50,6 +50,9 @@ export default class MasterModal extends ModalHandler {
 				return;
 			}
 			case "delete": {
+				const confirm = interaction.fields.getTextInputValue("confirm");
+				if (confirm !== "DELETE") throw new AppError("NOT_CONFIRMED");
+
 				await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 				try {
 					lockManager.lock(LockType.Network, node.network.id);

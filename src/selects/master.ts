@@ -1,12 +1,8 @@
 import {
-	ActionRowBuilder,
-	ButtonBuilder,
-	ButtonStyle,
-	EmbedBuilder,
 	LabelBuilder,
-	MessageFlags,
 	ModalBuilder,
 	type StringSelectMenuInteraction,
+	TextDisplayBuilder,
 	TextInputBuilder,
 	TextInputStyle,
 } from "discord.js";
@@ -75,29 +71,29 @@ export default class masterSelector extends SelectHandler {
 				return;
 			}
 			case "delete": {
-				const embed = new EmbedBuilder()
-					.setTitle("Delete Network")
-					.setDescription(
-						"**You are about to delete your network. This action is irreversible!**\n\n**Are you sure you want to continue?**",
+				const modal = new ModalBuilder()
+					.setCustomId("master:delete")
+					.setTitle("Setup - Master - Delete Network")
+					.addTextDisplayComponents(
+						new TextDisplayBuilder({
+							content:
+								"**This Action can not be undone**, are you really sure that you want to delete this Network, this will force leave all Nodes and force delete all policies!",
+						}),
 					)
-					.setColor(0x800020);
+					.addLabelComponents(
+						new LabelBuilder()
+							.setLabel("Confirm Deletion")
+							.setDescription("Enter DELETE below to confirm!")
+							.setTextInputComponent(
+								new TextInputBuilder()
+									.setCustomId("confirm")
+									.setMaxLength(6)
+									.setRequired(true)
+									.setStyle(TextInputStyle.Short),
+							),
+					);
 
-				const row = new ActionRowBuilder<ButtonBuilder>().addComponents([
-					new ButtonBuilder()
-						.setCustomId("master:delete")
-						.setLabel("Confirm")
-						.setStyle(ButtonStyle.Danger),
-					new ButtonBuilder()
-						.setCustomId("master")
-						.setLabel("Cancel")
-						.setStyle(ButtonStyle.Secondary),
-				]);
-
-				await interaction.reply({
-					embeds: [embed],
-					components: [row],
-					flags: MessageFlags.Ephemeral,
-				});
+				await interaction.showModal(modal);
 				return;
 			}
 		}
