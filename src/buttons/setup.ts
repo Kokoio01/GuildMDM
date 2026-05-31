@@ -7,6 +7,7 @@ import {
 	TextInputStyle,
 } from "discord.js";
 import { networks, nodes } from "../db/index.js";
+import { netSetup, nodeSetup, setupMenu } from "../messages/setup.js";
 import { AppError } from "../structures/apperror.js";
 import { ButtonHandler } from "../structures/buttonhandler.js";
 import { ensureGuild, validateAdmin } from "../utils/permissions.js";
@@ -18,7 +19,6 @@ export default class SetupButton extends ButtonHandler {
 		if (!ensureGuild(interaction)) return;
 		if (!(await validateAdmin(interaction))) return;
 		const action = interaction.customId.split(":")[1];
-		if (!action) throw new AppError("UNKNOWN_BUTTON");
 		const adminGuild = process.env.ADMIN_GUILD as string;
 
 		switch (action) {
@@ -122,6 +122,18 @@ export default class SetupButton extends ButtonHandler {
 						);
 
 					await interaction.showModal(modal);
+				}
+				return;
+			}
+			default: {
+				if (adminGuild) {
+					if (adminGuild === interaction.guild.id) {
+						await interaction.reply(netSetup());
+					} else {
+						await interaction.reply(nodeSetup());
+					}
+				} else {
+					await interaction.reply(setupMenu());
 				}
 				return;
 			}

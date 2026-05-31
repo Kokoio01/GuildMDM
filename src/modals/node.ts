@@ -1,11 +1,11 @@
 import type { ModalSubmitInteraction } from "discord.js";
 import { networks, nodes } from "../db/index.js";
+import { success } from "../messages/feedback.js";
 import { AppError } from "../structures/apperror.js";
 import { ModalHandler } from "../structures/modalhandler.js";
 import { NodeType } from "../types/node.js";
 import { internalBus } from "../utils/eventBus.js";
 import { LockType, lockManager } from "../utils/lockManager.js";
-import { successMessage } from "../utils/messages.js";
 import {
 	ensureGuild,
 	ensureNodeType,
@@ -38,7 +38,12 @@ export default class NodeModal extends ModalHandler {
 					internalBus.emit("network_leave", master.guildid, node.guildid);
 
 					await interaction.followUp(
-						successMessage("Goodbye!", "The Node has been left the Network."),
+						success(
+							"Goodbye!",
+							"The Node has been left the Network.",
+							"setup",
+							node,
+						),
 					);
 				} finally {
 					lockManager.release(LockType.Node, node.id);

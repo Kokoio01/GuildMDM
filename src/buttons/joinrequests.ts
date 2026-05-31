@@ -1,5 +1,6 @@
 import type { ButtonInteraction } from "discord.js";
 import { joinrequests, networks } from "../db/index.js";
+import { success } from "../messages/feedback.js";
 import { joinRequestMenu } from "../messages/joinrequests.js";
 import { AppError } from "../structures/apperror.js";
 import { ButtonHandler } from "../structures/buttonhandler.js";
@@ -7,7 +8,6 @@ import { RequestStatus } from "../types/network.js";
 import { NodeType } from "../types/node.js";
 import { internalBus } from "../utils/eventBus.js";
 import { LockType, lockManager } from "../utils/lockManager.js";
-import { successMessage } from "../utils/messages.js";
 import {
 	ensureGuild,
 	ensureNodeType,
@@ -42,9 +42,11 @@ export default class JoinRequestButton extends ButtonHandler {
 					await joinrequests.acceptJoinRequest(joinRequest);
 					internalBus.emit("joinRequest_accept", joinRequest.guildid, network);
 					await interaction.reply(
-						successMessage(
+						success(
 							"Join Request accepted",
 							"The Join Request has been accepted!",
+							"joinrequests",
+							node,
 						),
 					);
 				} finally {
@@ -69,9 +71,11 @@ export default class JoinRequestButton extends ButtonHandler {
 					await joinrequests.denyJoinRequest(joinRequest);
 					internalBus.emit("joinRequest_decline", joinRequest.guildid, network);
 					await interaction.reply(
-						successMessage(
+						success(
 							"Join Request declined",
 							"The Join Request has been declined!",
+							"joinrequests",
+							node,
 						),
 					);
 				} finally {

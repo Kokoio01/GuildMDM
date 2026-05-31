@@ -1,6 +1,6 @@
 import type { Interaction } from "discord.js";
 import { nodes } from "../db/index.js";
-import error from "../messages/feedback.js";
+import { error } from "../messages/feedback.js";
 import { AppError } from "../structures/apperror.js";
 import type { ButtonHandler } from "../structures/buttonhandler.js";
 import { GatewayEvent } from "../structures/gatewayevent.js";

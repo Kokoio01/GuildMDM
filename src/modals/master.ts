@@ -1,11 +1,11 @@
 import { MessageFlags, type ModalSubmitInteraction } from "discord.js";
 import { networks } from "../db/index.js";
+import { success } from "../messages/feedback.js";
 import { AppError } from "../structures/apperror.js";
 import { ModalHandler } from "../structures/modalhandler.js";
 import { NodeType } from "../types/node.js";
 import { internalBus } from "../utils/eventBus.js";
 import { LockType, lockManager } from "../utils/lockManager.js";
-import { successMessage } from "../utils/messages.js";
 import {
 	ensureGuild,
 	ensureNodeType,
@@ -37,9 +37,11 @@ export default class MasterModal extends ModalHandler {
 					await networks.updateNetwork(node.network.id, name);
 
 					await interaction.followUp(
-						successMessage(
+						success(
 							"Network renamed",
 							`The Network has been renamed to **${name}**`,
+							"master",
+							node,
 						),
 					);
 				} finally {
@@ -61,7 +63,7 @@ export default class MasterModal extends ModalHandler {
 					});
 
 					await interaction.followUp(
-						successMessage("Deleted", "The Network has been deleted."),
+						success("Deleted", "The Network has been deleted.", "setup", node),
 					);
 				} finally {
 					lockManager.release(LockType.Network, node.network.id);

@@ -1,10 +1,10 @@
 import type { ModalSubmitInteraction } from "discord.js";
 import { joinrequests, networks, nodes } from "../db/index.js";
+import { success } from "../messages/feedback.js";
 import { masterMenu } from "../messages/master.js";
 import { AppError } from "../structures/apperror.js";
 import { ModalHandler } from "../structures/modalhandler.js";
 import type { Network } from "../types/network.js";
-import { successMessage } from "../utils/messages.js";
 import { ensureGuild, validateAdmin } from "../utils/permissions.js";
 
 export default class SetupModal extends ModalHandler {
@@ -52,9 +52,10 @@ export default class SetupModal extends ModalHandler {
 						);
 
 						await interaction.reply(
-							successMessage(
+							success(
 								"Application submitted",
 								"Your Application has been submitted to the Network Owner. They will respond to you as soon as possible.",
+								"setup",
 							),
 						);
 					}
@@ -70,9 +71,10 @@ export default class SetupModal extends ModalHandler {
 						);
 
 						await interaction.reply(
-							successMessage(
+							success(
 								"Application submitted",
 								"Your Application has been submitted to the Network Owner. They will respond to you as soon as possible.",
+								"setup",
 							),
 						);
 					}
